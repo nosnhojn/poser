@@ -36,6 +36,9 @@ class ModuleTests (unittest.TestCase):
   def testNoPrunedGatesEqualIOWidth4(self):
     self.assertTrue(self.noGatesPruned(10, 10, 81, 41))
 
+  def testNoPrunedGatesEqualIOWidth5(self):
+    self.assertTrue(self.noGatesPruned(5, 5, 3, 0))
+
 
   def testNoPrunedGatesLargerInputWidth0(self):
     self.assertTrue(self.noGatesPruned(5, 4, 17, 3))
@@ -51,6 +54,9 @@ class ModuleTests (unittest.TestCase):
 
   def testNoPrunedGatesLargerInputWidth4(self):
     self.assertTrue(self.noGatesPruned(10, 1, 81, 41))
+
+  def testNoPrunedGatesLargerInputWidth5(self):
+    self.assertTrue(self.noGatesPruned(10, 1, 41, 0))
 
 
   def noGatesPruned(self, inWidth, outWidth, depth, flops):

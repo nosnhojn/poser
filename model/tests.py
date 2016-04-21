@@ -11,91 +11,92 @@ class CellTests (unittest.TestCase):
     pass
 
   def testAsyncOutputFalseWhenBothInputsFalse(self):
-    self.c.driveInputs(False, False)
+    self.c.driveInputs([False, False])
     self.assertFalse(self.c.asyncOutput())
 
   def testAsyncOutputFalseWhenOneInputFalse(self):
-    self.c.driveInputs(True, False)
+    self.c.driveInputs([True, False])
     self.assertFalse(self.c.asyncOutput())
 
   def testAsyncOutputTrueWhenBothInputsTrue(self):
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.assertTrue(self.c.asyncOutput())
 
   def testSyncOutputResetsToFalse(self):
     self.assertFalse(self.c.syncOutput())
 
   def testSyncOutputFalseWhenBothInputsFalse(self):
-    self.c.driveInputs(False, False)
+    self.c.driveInputs([False, False])
     self.c.clk()
     self.assertFalse(self.c.syncOutput())
 
   def testSyncOutputTrueWhenBothInputsTrue(self):
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.c.clk()
     self.assertTrue(self.c.syncOutput())
 
   def testSyncOutputUpdatesWith2ndClk(self):
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.c.clk()
-    self.c.driveInputs(False, False)
+    self.c.driveInputs([False, False])
     self.c.clk()
     self.assertFalse(self.c.syncOutput())
 
   def testSyncOutputHolds(self):
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.c.clk()
     self.c.clk()
     self.assertTrue(self.c.syncOutput())
 
   def testAsyncStableWhenFalse(self):
-    self.c.driveInputs(False, False)
+    self.c.driveInputs([False, False])
+    self.c.driveInputs([False, False])
     self.assertTrue(self.c.isStable())
 
   def testAsyncStableWhenBothTrue(self):
-    self.c.driveInputs(True, True)
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
+    self.c.driveInputs([True, True])
     self.assertTrue(self.c.isStable())
 
   def testAsyncStableWhenBothFalse(self):
-    self.c.driveInputs(False, False)
-    self.c.driveInputs(False, False)
+    self.c.driveInputs([False, False])
+    self.c.driveInputs([False, False])
     self.assertTrue(self.c.isStable())
  
   def testAsyncNotStableWhenAChanges(self):
-    self.c.driveInputs(True, True)
-    self.c.driveInputs(False, True)
+    self.c.driveInputs([True, True])
+    self.c.driveInputs([False, True])
     self.assertFalse(self.c.isStable())
  
   def testAsyncNotStableWhenBChanges(self):
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.c.clk()
-    self.c.driveInputs(True, False)
+    self.c.driveInputs([True, False])
     self.c.clk()
     self.assertFalse(self.c.isStable())
 
   def testCellCanBeOr(self):
     self.c.setOperator(CellType._or)
-    self.c.driveInputs(False, True)
+    self.c.driveInputs([False, True])
     self.assertTrue(self.c.asyncOutput())
 
   def testCellCanBeXor(self):
     self.c.setOperator(CellType._xor)
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.assertFalse(self.c.asyncOutput())
-    self.c.driveInputs(False, False)
+    self.c.driveInputs([False, False])
     self.assertFalse(self.c.asyncOutput())
-    self.c.driveInputs(False, True)
+    self.c.driveInputs([False, True])
     self.assertTrue(self.c.asyncOutput())
 
   def testSetForAsyncOutput(self):
     self.c.setOutputType(OutputType.async)
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.assertTrue(self.c.output())
 
   def testSetForSyncOutput(self):
     self.c.setOutputType(OutputType.sync)
-    self.c.driveInputs(True, True)
+    self.c.driveInputs([True, True])
     self.assertFalse(self.c.output())
     self.c.clk()
     self.assertTrue(self.c.output())

@@ -1,6 +1,7 @@
 from enum import Enum
 import random
 import math
+import functools
 
 _rn = [ 1, 1, 1, 0, 1 ]
 
@@ -84,30 +85,28 @@ class Mux(BaseCell):
 class Cell(BaseCell):
   def __init__(self):
     BaseCell.__init__(self)
-    self.A = False
-    self.B = False
+    self.inputs = [ ]
     self._syncOutput = False
     self._outputType = OutputType.async
     self.operator = CellType._and
 
-  def driveInputs(self, a, b):
-    self._isStable = (self.A == a) & (self.B == b)
-    self.A = a
-    self.B = b
+  def driveInputs(self, inputs):
+    self._isStable = (self.inputs == inputs)
+    self.inputs = inputs
 
   def asyncOutput(self):
     if self.operator == CellType._and:
-      return bool(self.A & self.B)
+      return functools.reduce(lambda x, y: bool(x & y), self.inputs)
     elif self.operator == CellType._or:
-      return bool(self.A | self.B)
+      return functools.reduce(lambda x, y: bool(x | y), self.inputs)
     elif self.operator == CellType._xor:
-      return bool(self.A ^ self.B)
+      return functools.reduce(lambda x, y: bool(x ^ y), self.inputs)
     elif self.operator == CellType._xnor:
-      return bool(~(self.A ^ self.B))
+      return functools.reduce(lambda x, y: bool(~(x ^ y)), self.inputs)
     elif self.operator == CellType._nand:
-      return bool(~(self.A & self.B))
+      return functools.reduce(lambda x, y: bool(~(x & y)), self.inputs)
     elif self.operator == CellType._nor:
-      return bool(~(self.A | self.B))
+      return functools.reduce(lambda x, y: bool(~(x | y)), self.inputs)
 
   def syncOutput(self):
     return self._syncOutput
@@ -172,18 +171,19 @@ class Module(BaseCell):
   def setNumFlops(self, n):
     cnt = 0
     idx = 0
-    probability = int (n/(self.gridDepth() * self.gridWidth()) * 100)
-    while cnt < n:
-      dIdx = int(idx/self.gridWidth())
-      wIdx = idx%self.gridWidth()
-      if self.cells[dIdx][wIdx].getOutputType() == OutputType.async:
-        amIaFlop = random.randint(0,99) < probability
-        if amIaFlop:
-          self.cells[dIdx][wIdx].setOutputType(OutputType.sync)
-          cnt += 1
-      idx += 1
-      if idx >= self.gridWidth() * self.gridDepth():
-        idx = 0
+    if n > 0:
+      probability = int (n/(self.gridDepth() * self.gridWidth()) * 100)
+      while cnt < n:
+        dIdx = int(idx/self.gridWidth())
+        wIdx = idx%self.gridWidth()
+        if self.cells[dIdx][wIdx].getOutputType() == OutputType.async:
+          amIaFlop = random.randint(0,99) < probability
+          if amIaFlop:
+            self.cells[dIdx][wIdx].setOutputType(OutputType.sync)
+            cnt += 1
+        idx += 1
+        if idx >= self.gridWidth() * self.gridDepth():
+          idx = 0
 
   def getNumFlops(self):
     numFlops = 0
@@ -203,14 +203,14 @@ class Module(BaseCell):
       for wIdx in range(self.gridWidth()):
         if dIdx == 0:
           if wIdx == 0:
-            self.cells[0][0].driveInputs(self._inputs[0], self.tied[0])
+            self.cells[0][0].driveInputs([self._inputs[0], self.tied[0]])
           else:
-            self.cells[dIdx][wIdx].driveInputs(self._inputs[wIdx], self.cells[dIdx][wIdx-1].output())
+            self.cells[dIdx][wIdx].driveInputs([self._inputs[wIdx], self.cells[dIdx][wIdx-1].output()])
         else:
           if wIdx == 0:
-            self.cells[dIdx][wIdx].driveInputs(self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx-1][self.gridWidth()-1].output())
+            self.cells[dIdx][wIdx].driveInputs([self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx-1][self.gridWidth()-1].output()])
           else:
-            self.cells[dIdx][wIdx].driveInputs(self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx][wIdx-1].output())
+            self.cells[dIdx][wIdx].driveInputs([self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx][wIdx-1].output()])
 
     if self.outputMux:
       if self.widthOut == 1:
