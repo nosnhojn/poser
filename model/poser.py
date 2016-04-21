@@ -35,6 +35,7 @@ class CellType(Enum):
   _and = 0
   _or = 1
   _xor = 2
+  _xnor = 2
   _nand = 3
   _nor = 4
 
@@ -80,15 +81,17 @@ class Cell(BaseCell):
 
   def asyncOutput(self):
     if self.operator == CellType._and:
-      return self.A & self.B
+      return bool(self.A & self.B)
     elif self.operator == CellType._or:
-      return self.A | self.B
+      return bool(self.A | self.B)
     elif self.operator == CellType._xor:
-      return self.A ^ self.B
+      return bool(self.A ^ self.B)
+    elif self.operator == CellType._xnor:
+      return bool(~(self.A ^ self.B))
     elif self.operator == CellType._nand:
-      return ~(self.A & self.B)
+      return bool(~(self.A & self.B))
     elif self.operator == CellType._nor:
-      return ~(self.A | self.B)
+      return bool(~(self.A | self.B))
 
   def syncOutput(self):
     return self._syncOutput
@@ -210,7 +213,6 @@ class Module(BaseCell):
     else:
       if self.widthOut == 1:
         return [ self.outputMux.output() ]
-
       else:
         return [ self.outputMux.output() ] + self.gridOutput()[-(self.widthOut - 1):]
 
@@ -218,13 +220,15 @@ class Module(BaseCell):
     for dIdx in range(self.gridDepth()):
       for wIdx in range(self.gridWidth()):
         n = random.randint(0,99)
-        if n < 5:
-          self.cells[dIdx][wIdx].setOperator(CellType(0))
-        elif n < 10:
-          self.cells[dIdx][wIdx].setOperator(CellType(1))
-        elif n < 20:
-          self.cells[dIdx][wIdx].setOperator(CellType(3))
-        elif n < 30:
-          self.cells[dIdx][wIdx].setOperator(CellType(4))
+        if n < 3:
+          self.cells[dIdx][wIdx].setOperator(CellType._and)
+        elif n < 6:
+          self.cells[dIdx][wIdx].setOperator(CellType._or)
+        elif n < 9:
+          self.cells[dIdx][wIdx].setOperator(CellType._nand)
+        elif n < 12:
+          self.cells[dIdx][wIdx].setOperator(CellType._nor)
+        elif n < 15:
+          self.cells[dIdx][wIdx].setOperator(CellType._xnor)
         else:
-          self.cells[dIdx][wIdx].setOperator(CellType(2))
+          self.cells[dIdx][wIdx].setOperator(CellType._xor)
