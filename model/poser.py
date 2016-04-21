@@ -39,6 +39,22 @@ class CellType(Enum):
   _nand = 3
   _nor = 4
 
+  @staticmethod
+  def randOpType():
+    n = random.randint(0,99)
+    if n < 3:
+      return CellType._and
+    elif n < 6:
+      return CellType._or
+    elif n < 9:
+      return CellType._nand
+    elif n < 12:
+      return CellType._nor
+    elif n < 15:
+      return CellType._xnor
+    else:
+      return CellType._xor
+
 class Mux(BaseCell):
   def __init__(self):
     self.inputs = []
@@ -121,6 +137,7 @@ class Cell(BaseCell):
 class Module(BaseCell):
   def __init__(self):
     self.cells = []
+    self.connectivityMatrix = []
     self.tied = []
     self._inputs = []
     self.widthIn = 0
@@ -145,9 +162,12 @@ class Module(BaseCell):
 
   def createGrid(self, widthIn, widthOut, depth):
     self.setGridWidths(widthIn, widthOut)
+    cm = [ i for i in range(self.gridWidth()) ]
     for dIdx in range(depth):
       self.cells.append([ Cell() for wIdx in range(self.gridWidth()) ])
       self.tied.append(False)
+      random.shuffle(cm)
+      self.connectivityMatrix.append(cm)
 
   def setNumFlops(self, n):
     cnt = 0
@@ -188,9 +208,9 @@ class Module(BaseCell):
             self.cells[dIdx][wIdx].driveInputs(self._inputs[wIdx], self.cells[dIdx][wIdx-1].output())
         else:
           if wIdx == 0:
-            self.cells[dIdx][wIdx].driveInputs(self.cells[dIdx-1][wIdx].output(), self.cells[dIdx-1][self.gridWidth()-1].output())
+            self.cells[dIdx][wIdx].driveInputs(self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx-1][self.gridWidth()-1].output())
           else:
-            self.cells[dIdx][wIdx].driveInputs(self.cells[dIdx-1][wIdx].output(), self.cells[dIdx][wIdx-1].output())
+            self.cells[dIdx][wIdx].driveInputs(self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx][wIdx-1].output())
 
     if self.outputMux:
       if self.widthOut == 1:
@@ -219,16 +239,7 @@ class Module(BaseCell):
   def randomizeGates(self):
     for dIdx in range(self.gridDepth()):
       for wIdx in range(self.gridWidth()):
-        n = random.randint(0,99)
-        if n < 3:
-          self.cells[dIdx][wIdx].setOperator(CellType._and)
-        elif n < 6:
-          self.cells[dIdx][wIdx].setOperator(CellType._or)
-        elif n < 9:
-          self.cells[dIdx][wIdx].setOperator(CellType._nand)
-        elif n < 12:
-          self.cells[dIdx][wIdx].setOperator(CellType._nor)
-        elif n < 15:
-          self.cells[dIdx][wIdx].setOperator(CellType._xnor)
+        if dIdx < self.gridDepth() - 2:
+          self.cells[dIdx][wIdx].setOperator(CellType.randOpType())
         else:
           self.cells[dIdx][wIdx].setOperator(CellType._xor)

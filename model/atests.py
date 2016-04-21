@@ -5,7 +5,7 @@ import random
 
 class ModuleTests (unittest.TestCase):
   def setUp(self):
-    self.cycles = 500
+    self.cycles = 200
     self.m = Module()
 
   def tearDown(self):
