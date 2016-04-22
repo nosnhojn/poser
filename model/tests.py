@@ -158,45 +158,45 @@ class ModuleTests (unittest.TestCase):
   def width(self):
     return len(self.m.cells[0])
 
-  def createGridAndTieCell0Input(self, wIn, wOut, depth=1, initValForCell0 = False):
-    self.m.createGrid(wIn, wOut, depth)
+  def createGridAndTieCell0Input(self, wIn, wOut, width, depth=1, initValForCell0 = False):
+    self.m.createGrid(wIn, wOut, width, depth)
     self.m.tieCell0([initValForCell0])
 
   def testInit4x1(self):
-    self.createGridAndTieCell0Input(4, 4, 1)
+    self.createGridAndTieCell0Input(4, 4, 4, 1)
 
     self.assertTrue(self.depth() == 1)
     self.assertTrue(self.width() == 4)
 
   def testInitNxN(self):
-    self.createGridAndTieCell0Input(7, 7, 6)
+    self.createGridAndTieCell0Input(7, 7, 7, 6)
 
     self.assertTrue(self.depth() == 6)
     self.assertTrue(self.width() == 7)
 
   def test2x1AndTiedLow(self):
-    self.createGridAndTieCell0Input(2, 2, 1)
+    self.createGridAndTieCell0Input(2, 2, 2, 1)
 
     self.m.driveInputs([True, True])
 
     self.assertEqual(self.m.sampleOutputs(), [False, False])
 
   def test2x1AndTiedHigh(self):
-    self.createGridAndTieCell0Input(2, 2, 1, True)
+    self.createGridAndTieCell0Input(2, 2, 2, 1, True)
 
     self.m.driveInputs([True, True])
 
     self.assertEqual(self.m.sampleOutputs(), [True, True])
 
   def test3x1AndTiedHigh(self):
-    self.createGridAndTieCell0Input(3, 3, 1, True)
+    self.createGridAndTieCell0Input(3, 3, 3, 1, True)
 
     self.m.driveInputs([True, True, False])
 
     self.assertEqual(self.m.sampleOutputs(), [True, True, False])
 
   def test2x2AndTiedHigh(self):
-    self.createGridAndTieCell0Input(2, 2, 2, True)
+    self.createGridAndTieCell0Input(2, 2, 2, 2, True)
 
     self.m.driveInputs([True, True])
     self.assertEqual(self.m.sampleOutputs(), [True, True])
@@ -205,7 +205,7 @@ class ModuleTests (unittest.TestCase):
     self.assertEqual(self.m.sampleOutputs(), [False, False])
 
   def test3x2AndTiedHigh(self):
-    self.createGridAndTieCell0Input(3, 3, 2, True)
+    self.createGridAndTieCell0Input(3, 3, 3, 2, True)
 
     self.m.driveInputs([True, True, True])
     self.assertEqual(self.m.sampleOutputs(), [True, True, True])
@@ -214,31 +214,31 @@ class ModuleTests (unittest.TestCase):
     self.assertEqual(self.m.sampleOutputs(), [False, False, False])
 
   def testFixNumberOfFlopsTo0(self):
-    self.createGridAndTieCell0Input(25, 25, 14, True)
+    self.createGridAndTieCell0Input(25, 25, 25, 14, True)
     self.m.setNumFlops(0)
 
     self.assertTrue(self.m.getNumFlops() == 0)
 
   def testFixNumberOfFlopsToLtWidth(self):
-    self.createGridAndTieCell0Input(25, 25, 14, True)
+    self.createGridAndTieCell0Input(25, 25, 25, 14, True)
     self.m.setNumFlops(17)
 
     self.assertTrue(self.m.getNumFlops() == 17)
 
   def testFixNumberOfFlopsToGtWidth(self):
-    self.createGridAndTieCell0Input(25, 25, 14, True)
+    self.createGridAndTieCell0Input(25, 25, 25, 14, True)
     self.m.setNumFlops(28)
 
     self.assertTrue(self.m.getNumFlops() == 28)
 
   def testFixNumberOfFlopsToMax(self):
-    self.createGridAndTieCell0Input(25, 25, 14, True)
+    self.createGridAndTieCell0Input(25, 25, 25, 14, True)
     self.m.setNumFlops(25 * 14)
 
     self.assertTrue(self.m.getNumFlops() == (25 * 14))
 
   def test2x1FloppedAndTiedHigh(self):
-    self.createGridAndTieCell0Input(2, 2, 1, True)
+    self.createGridAndTieCell0Input(2, 2, 2, 1, True)
     self.m.setNumFlops(2)
 
     self.m.driveInputs([True, True])
@@ -250,55 +250,55 @@ class ModuleTests (unittest.TestCase):
     self.assertEqual(self.m.sampleOutputs(), [True, True])
 
   def testOutputMuxOnlyExistsWhenOutputSmallerThanInputWidth(self):
-    self.createGridAndTieCell0Input(2, 2)
+    self.createGridAndTieCell0Input(2, 2, 2)
     self.assertEqual(self.m.outputMux, None)
 
   def testOutputMuxForMoreInputsThanOutputs(self):
-    self.createGridAndTieCell0Input(2, 1)
+    self.createGridAndTieCell0Input(2, 1, 2)
     self.assertNotEqual(self.m.outputMux, None)
 
   def testOutputSizeFor2Inputs1Output(self):
-    self.createGridAndTieCell0Input(2, 1)
+    self.createGridAndTieCell0Input(2, 1, 2)
     self.m.driveInputs([True, True])
     self.assertEqual(len(self.m.sampleOutputs()), 1)
 
   def testOutputFor2Inputs1Output(self):
-    self.createGridAndTieCell0Input(2, 1, 1, True)
+    self.createGridAndTieCell0Input(2, 1, 2, 1, True)
  
     self.m.driveInputs([True, True])
  
     self.assertEqual(self.m.sampleOutputs(), [ True ])
  
   def testOutputFor3Inputs2Output(self):
-    self.createGridAndTieCell0Input(3, 2, 1, True)
+    self.createGridAndTieCell0Input(3, 2, 3, 1, True)
  
     self.m.driveInputs([True, True, False])
  
     self.assertEqual(self.m.sampleOutputs(), [ True, False ])
  
   def testOutputFor4Inputs3Output(self):
-    self.createGridAndTieCell0Input(4, 3, 1, True)
+    self.createGridAndTieCell0Input(4, 3, 4, 1, True)
  
     self.m.driveInputs([True, True, True, False])
  
     self.assertEqual(self.m.sampleOutputs(), [ True, True, False ])
  
   def testOutputFor5Inputs4Output(self):
-    self.createGridAndTieCell0Input(5, 4, 1, True)
+    self.createGridAndTieCell0Input(5, 4, 5, 1, True)
  
     self.m.driveInputs([True, True, True, False, False])
  
     self.assertEqual(self.m.sampleOutputs(), [ True, True, False, False ])
  
   def testOutputFor8Inputs5Output(self):
-    self.createGridAndTieCell0Input(8, 5, 1, True)
+    self.createGridAndTieCell0Input(8, 5, 8, 1, True)
  
     self.m.driveInputs([True] * 6 + [False, False])
  
     self.assertEqual(self.m.sampleOutputs(), [ True, True, True, False, False ])
 
   def testModuleHasFixedCells(self):
-    self.createGridAndTieCell0Input(2, 2)
+    self.createGridAndTieCell0Input(2, 2, 2)
     self.m.setNumFlops(2)
     self.m.driveInputs([True] * 2)
     self.m.clk()
@@ -308,7 +308,7 @@ class ModuleTests (unittest.TestCase):
     self.assertTrue(self.m.moduleHasFixedCells())
 
   def testModuleHasNoFixedCells(self):
-    self.createGridAndTieCell0Input(2, 2, 1, True)
+    self.createGridAndTieCell0Input(2, 2, 2, 1, True)
     self.m.cells[0][1].setOutputType(OutputType.sync)
     self.m.driveInputs([True] * 2)
     self.m.clk()
@@ -319,7 +319,7 @@ class ModuleTests (unittest.TestCase):
     self.assertFalse(self.m.moduleHasFixedCells())
 
   def testOutputHistory(self):
-    self.createGridAndTieCell0Input(2, 2, 1, True)
+    self.createGridAndTieCell0Input(2, 2, 2, 1, True)
 
     self.m.driveInputs([True, True])
     self.m.sampleOutputs()
@@ -330,13 +330,34 @@ class ModuleTests (unittest.TestCase):
     self.assertTrue(self.m.outputsFixed())
 
   def testOutputsNotFixed(self):
-    self.createGridAndTieCell0Input(2, 2, 1, True)
+    self.createGridAndTieCell0Input(2, 2, 2, 1, True)
  
     self.m.driveInputs([True, True])
     self.m.sampleOutputs()
     self.m.driveInputs([False, False])
     self.m.sampleOutputs()
     self.assertFalse(self.m.outputsFixed())
+ 
+  def testOutputFor1Input2Outputs(self):
+    self.createGridAndTieCell0Input(1, 2, 2, 1, True)
+ 
+    self.m.driveInputs([True])
+ 
+    self.assertEqual(self.m.sampleOutputs(), [ True, True ])
+ 
+  def testOutputFor2Input4Outputs(self):
+    self.createGridAndTieCell0Input(2, 4, 4, 1, True)
+ 
+    self.m.driveInputs([True, True])
+ 
+    self.assertEqual(self.m.sampleOutputs(), [ True, True ] * 2)
+ 
+  def testOutputForLargerGridWidth(self):
+    self.createGridAndTieCell0Input(2, 4, 6, 1, True)
+ 
+    self.m.driveInputs([True, True])
+ 
+    self.assertEqual(self.m.sampleOutputs(), [ True, True ] * 2)
 
 
 

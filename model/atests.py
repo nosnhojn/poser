@@ -18,7 +18,7 @@ class ModuleTests (unittest.TestCase):
     return len(self.m.cells[0])
 
   def createGridAndTieCell0Input(self, inWidth, outWidth, d, v = False):
-    self.m.createGrid(inWidth, outWidth, d)
+    self.m.createGrid(inWidth, outWidth, inWidth, d)
     self.m.tieCell0([v])
 
   def testNoPrunedGatesEqualIOWidth0(self):

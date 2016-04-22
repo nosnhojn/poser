@@ -154,30 +154,29 @@ class Module(BaseCell):
     self._inputs = []
     self.widthIn = 0
     self.widthOut = 0
+    self.widthGrid = 0
     self.outputMux = None
     self.history = []
 
-  def setGridWidths(self, wIn, wOut):
+  def setGridWidths(self, wIn, wOut, wGrid):
     self.widthIn = wIn
     self.widthOut = wOut
+    self.widthGrid = wGrid
 
-    if self.widthIn > self.widthOut:
+    if self.widthGrid > self.widthOut:
       self.outputMux = Mux()
 
   def gridWidth(self):
-    if self.widthIn > self.widthOut:
-      return self.widthIn
-    else:
-      return self.widthOut
+    return self.widthGrid
 
   def gridDepth(self):
     return len(self.cells)
 
-  def createGrid(self, widthIn, widthOut, depth):
-    self.setGridWidths(widthIn, widthOut)
-    cm = [ i for i in range(self.gridWidth()) ]
+  def createGrid(self, widthIn, widthOut, widthGrid, depth):
+    self.setGridWidths(widthIn, widthOut, widthGrid)
+    cm = [ i for i in range(self.widthGrid) ]
     for dIdx in range(depth):
-      self.cells.append([ Cell() for wIdx in range(self.gridWidth()) ])
+      self.cells.append([ Cell() for wIdx in range(self.widthGrid) ])
       self.tied.append(False)
       random.shuffle(cm)
       self.connectivityMatrix.append(cm)
@@ -207,7 +206,6 @@ class Module(BaseCell):
 
   def driveInputs(self, inputs):
     self._inputs = inputs
-    #self.resolve()
 
   def gridOutput(self):
     return [ c.output() for c in self.cells[self.gridDepth()-1] ]
@@ -219,6 +217,9 @@ class Module(BaseCell):
         flopOutputs.append(self.cells[dIdx][n].output())
     return flopOutputs
 
+  def getInputIndex(self, wIdx):
+    return wIdx % self.widthIn
+
   def resolve(self):
     for dIdx in range(self.gridDepth()):
       for wIdx in range(self.gridWidth()):
@@ -229,8 +230,9 @@ class Module(BaseCell):
                                            self.tied[0],
                                         ] + self.flopOutputsForRow(0))
           else:
+            idx = self.getInputIndex(wIdx)
             self.cells[dIdx][wIdx].driveInputs([
-                                                 self._inputs[wIdx],
+                                                 self._inputs[idx],
                                                  self.cells[dIdx][wIdx-1].output(),
                                               ] + self.flopOutputsForRow(wIdx))
         else:
@@ -249,7 +251,7 @@ class Module(BaseCell):
       if self.widthOut == 1:
         self.outputMux.driveInputs(self.gridOutput())
       else:
-        self.outputMux.driveInputs(self.gridOutput()[:(self.widthIn - self.widthOut)])
+        self.outputMux.driveInputs(self.gridOutput()[:(self.gridWidth() - self.widthOut)])
 
   def clk(self):
     self.resolve()
@@ -292,8 +294,8 @@ class Module(BaseCell):
           if self.cells[dIdx][wIdx].cellHistoryFixed(): 
             numFixedCells += 1
 
-    if numFixedCells > 0:
-      print ('fixed module cells : ' + str(numFixedCells))
+#   if numFixedCells > 0:
+#     print ('fixed module cells : ' + str(numFixedCells))
     return (numFixedCells > 0)
 
   def outputHistory(self):
@@ -306,6 +308,6 @@ class Module(BaseCell):
       if sumHistory == 0 or sumHistory == len(self.outputHistory()):
         oFixed += 1
 
-    if oFixed > 0:
-      print ('fixed module outputs : ' + str(oFixed))
+#   if oFixed > 0:
+#     print ('fixed module outputs : ' + str(oFixed))
     return (oFixed > 0)
