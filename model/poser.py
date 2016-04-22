@@ -89,6 +89,7 @@ class Cell(BaseCell):
     self._syncOutput = False
     self._outputType = OutputType.async
     self.operator = CellType._and
+    self.history = []
 
   def driveInputs(self, inputs):
     self._isStable = (self.inputs == inputs)
@@ -112,10 +113,22 @@ class Cell(BaseCell):
     return self._syncOutput
 
   def output(self):
+    o = None
     if self._outputType == OutputType.async:
-      return self.asyncOutput()
+      o = self.asyncOutput()
     else:
-      return self.syncOutput()
+      o = self.syncOutput()
+
+    self.history.append(o)
+    return o
+
+  def cellHistory(self):
+    return self.history
+
+  def cellHistoryFixed(self):
+    numTrue = len([ x for x in self.history if x == True ])
+    if numTrue == 0 or numTrue == len(self.history):
+      return True
 
   def clk(self):
     BaseCell.clk(self)
@@ -262,3 +275,11 @@ class Module(BaseCell):
           self.cells[dIdx][wIdx].setOperator(CellType.randOpType())
         else:
           self.cells[dIdx][wIdx].setOperator(CellType._xor)
+
+  def moduleHasFixedCells(self):
+    for dIdx in range(self.gridDepth()):
+      for wIdx in range(self.gridWidth()):
+        if self.cells[dIdx][wIdx].cellHistoryFixed():
+          return True
+
+    return False
