@@ -198,19 +198,38 @@ class Module(BaseCell):
   def gridOutput(self):
     return [ c.output() for c in self.cells[self.gridDepth()-1] ]
 
+  def flopOutputsForRow(self, n):
+    flopOutputs = []
+    for dIdx in range(self.gridDepth()):
+      if self.cells[dIdx][n].getOutputType == OutputType.async:
+        flopOutputs.append(self.cells[dIdx][n].output())
+    return flopOutputs
+
   def resolve(self):
     for dIdx in range(self.gridDepth()):
       for wIdx in range(self.gridWidth()):
         if dIdx == 0:
           if wIdx == 0:
-            self.cells[0][0].driveInputs([self._inputs[0], self.tied[0]])
+            self.cells[0][0].driveInputs([
+                                           self._inputs[0],
+                                           self.tied[0],
+                                        ] + self.flopOutputsForRow(0))
           else:
-            self.cells[dIdx][wIdx].driveInputs([self._inputs[wIdx], self.cells[dIdx][wIdx-1].output()])
+            self.cells[dIdx][wIdx].driveInputs([
+                                                 self._inputs[wIdx],
+                                                 self.cells[dIdx][wIdx-1].output(),
+                                              ] + self.flopOutputsForRow(wIdx))
         else:
           if wIdx == 0:
-            self.cells[dIdx][wIdx].driveInputs([self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx-1][self.gridWidth()-1].output()])
+            self.cells[dIdx][wIdx].driveInputs([
+                                                 self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(),
+                                                 self.cells[dIdx-1][self.gridWidth()-1].output(),
+                                              ])
           else:
-            self.cells[dIdx][wIdx].driveInputs([self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), self.cells[dIdx][wIdx-1].output()])
+            self.cells[dIdx][wIdx].driveInputs([
+                                                 self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(),
+                                                 self.cells[dIdx][wIdx-1].output(),
+                                              ])
 
     if self.outputMux:
       if self.widthOut == 1:
