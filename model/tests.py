@@ -125,6 +125,16 @@ class CellTests (unittest.TestCase):
     self.assertTrue(self.c.cellHistoryFixed())
 
   def testCellHistoryNotFixed(self):
+    self.c.setOutputType(OutputType.sync)
+    self.c.driveInputs([True, True])
+    self.c.clk()
+    self.c.output()
+    self.c.driveInputs([False, True])
+    self.c.clk()
+    self.c.output()
+    self.assertFalse(self.c.cellHistoryFixed())
+
+  def testNoCellHistoryForAsync(self):
     self.c.setOutputType(OutputType.async)
     self.c.driveInputs([True, True])
     self.c.output()
@@ -289,19 +299,44 @@ class ModuleTests (unittest.TestCase):
 
   def testModuleHasFixedCells(self):
     self.createGridAndTieCell0Input(2, 2)
+    self.m.setNumFlops(2)
     self.m.driveInputs([True] * 2)
+    self.m.clk()
     self.m.sampleOutputs()
+    self.m.clk()
     self.m.sampleOutputs()
     self.assertTrue(self.m.moduleHasFixedCells())
 
   def testModuleHasNoFixedCells(self):
     self.createGridAndTieCell0Input(2, 2, 1, True)
+    self.m.cells[0][1].setOutputType(OutputType.sync)
     self.m.driveInputs([True] * 2)
+    self.m.clk()
     self.m.sampleOutputs()
     self.m.driveInputs([False] * 2)
+    self.m.clk()
     self.m.sampleOutputs()
     self.assertFalse(self.m.moduleHasFixedCells())
-    
+
+  def testOutputHistory(self):
+    self.createGridAndTieCell0Input(2, 2, 1, True)
+
+    self.m.driveInputs([True, True])
+    self.m.sampleOutputs()
+    self.m.sampleOutputs()
+    self.m.sampleOutputs()
+    self.assertEqual(len(self.m.outputHistory()), 3)
+    self.assertEqual(self.m.outputHistory(), [ [True, True], [True, True], [True, True] ])
+    self.assertTrue(self.m.outputsFixed())
+
+  def testOutputsNotFixed(self):
+    self.createGridAndTieCell0Input(2, 2, 1, True)
+ 
+    self.m.driveInputs([True, True])
+    self.m.sampleOutputs()
+    self.m.driveInputs([False, False])
+    self.m.sampleOutputs()
+    self.assertFalse(self.m.outputsFixed())
 
 
 

@@ -22,45 +22,44 @@ class ModuleTests (unittest.TestCase):
     self.m.tieCell0([v])
 
   def testNoPrunedGatesEqualIOWidth0(self):
-    self.assertTrue(self.noGatesPruned(5, 5, 17, 3))
+    self.assertFalse(self.gatesPruned(5, 5, 17, 3))
 
   def testNoPrunedGatesEqualIOWidth1(self):
-    self.assertTrue(self.noGatesPruned(25, 25, 17, 18))
+    self.assertFalse(self.gatesPruned(25, 25, 17, 18))
 
   def testNoPrunedGatesEqualIOWidth2(self):
-    self.assertTrue(self.noGatesPruned(55, 55, 37, 321))
+    self.assertFalse(self.gatesPruned(55, 55, 37, 321))
 
   def testNoPrunedGatesEqualIOWidth3(self):
-    self.assertTrue(self.noGatesPruned(705, 705, 3, 41))
+    self.assertFalse(self.gatesPruned(705, 705, 3, 41))
 
   def testNoPrunedGatesEqualIOWidth4(self):
-    self.assertTrue(self.noGatesPruned(10, 10, 81, 41))
+    self.assertFalse(self.gatesPruned(10, 10, 81, 41))
 
   def testNoPrunedGatesEqualIOWidth5(self):
-    self.assertTrue(self.noGatesPruned(5, 5, 3, 0))
+    self.assertFalse(self.gatesPruned(5, 5, 3, 0))
 
 
   def testNoPrunedGatesLargerInputWidth0(self):
-    self.assertTrue(self.noGatesPruned(5, 4, 17, 3))
+    self.assertFalse(self.gatesPruned(5, 4, 17, 3))
 
   def testNoPrunedGatesLargerInputWidth1(self):
-    self.assertTrue(self.noGatesPruned(25, 21, 17, 18))
+    self.assertFalse(self.gatesPruned(25, 21, 17, 18))
 
   def testNoPrunedGatesLargerInputWidth2(self):
-    self.assertTrue(self.noGatesPruned(55, 32, 37, 321))
+    self.assertFalse(self.gatesPruned(55, 32, 37, 321))
 
   def testNoPrunedGatesLargerInputWidth3(self):
-    self.assertTrue(self.noGatesPruned(705, 700, 3, 41))
+    self.assertFalse(self.gatesPruned(705, 700, 3, 41))
 
   def testNoPrunedGatesLargerInputWidth4(self):
-    self.assertTrue(self.noGatesPruned(10, 1, 81, 41))
+    self.assertFalse(self.gatesPruned(10, 1, 81, 41))
 
   def testNoPrunedGatesLargerInputWidth5(self):
-    self.assertTrue(self.noGatesPruned(10, 1, 41, 0))
+    self.assertFalse(self.gatesPruned(10, 1, 41, 0))
 
 
-  def noGatesPruned(self, inWidth, outWidth, depth, flops):
-    outputs = []
+  def gatesPruned(self, inWidth, outWidth, depth, flops):
     self.createGridAndTieCell0Input(inWidth, outWidth, depth, True)
     self.m.setNumFlops(flops)
     self.m.randomizeGates()
@@ -72,18 +71,9 @@ class ModuleTests (unittest.TestCase):
 
       self.m.driveInputs(a)
       self.m.clk()
-      outputs.append(self.m.sampleOutputs())
+      self.m.sampleOutputs()
 
-    numChoked = 0
-    for i in range(outWidth):
-      column = [int(x[i]) for x in outputs ]
-      bah = ''
-      if sum(column) == 0:
-        numChoked += 1
-      if sum(column) == self.cycles:
-        numChoked += 1
-
-    return numChoked == 0
+    return self.m.outputsFixed() or self.m.moduleHasFixedCells()
 
 
 if __name__ == "__main__":

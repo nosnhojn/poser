@@ -43,15 +43,15 @@ class CellType(Enum):
   @staticmethod
   def randOpType():
     n = random.randint(0,99)
-    if n < 3:
+    if n < 1:
       return CellType._and
-    elif n < 6:
+    elif n < 2:
       return CellType._or
-    elif n < 9:
+    elif n < 3:
       return CellType._nand
-    elif n < 12:
+    elif n < 4:
       return CellType._nor
-    elif n < 15:
+    elif n < 5:
       return CellType._xnor
     else:
       return CellType._xor
@@ -118,17 +118,17 @@ class Cell(BaseCell):
       o = self.asyncOutput()
     else:
       o = self.syncOutput()
-
-    self.history.append(o)
+      self.history.append(o)
     return o
 
   def cellHistory(self):
     return self.history
 
   def cellHistoryFixed(self):
-    numTrue = len([ x for x in self.history if x == True ])
-    if numTrue == 0 or numTrue == len(self.history):
-      return True
+    if len(self.history) > 0:
+      numTrue = len([ x for x in self.history if x == True ])
+      if numTrue == 0 or numTrue == len(self.history):
+        return True
 
   def clk(self):
     BaseCell.clk(self)
@@ -155,6 +155,7 @@ class Module(BaseCell):
     self.widthIn = 0
     self.widthOut = 0
     self.outputMux = None
+    self.history = []
 
   def setGridWidths(self, wIn, wOut):
     self.widthIn = wIn
@@ -206,7 +207,7 @@ class Module(BaseCell):
 
   def driveInputs(self, inputs):
     self._inputs = inputs
-    self.resolve()
+    #self.resolve()
 
   def gridOutput(self):
     return [ c.output() for c in self.cells[self.gridDepth()-1] ]
@@ -251,6 +252,7 @@ class Module(BaseCell):
         self.outputMux.driveInputs(self.gridOutput()[:(self.widthIn - self.widthOut)])
 
   def clk(self):
+    self.resolve()
     for dIdx in range(self.gridDepth()):
       for wIdx in range(self.gridWidth()):
         self.cells[dIdx][wIdx].clk()
@@ -260,13 +262,18 @@ class Module(BaseCell):
     self.tied = t
 
   def sampleOutputs(self):
+    o = []
+    self.resolve()
     if self.gridWidth() == self.widthOut:
-      return self.gridOutput()
+      o = self.gridOutput()
     else:
       if self.widthOut == 1:
-        return [ self.outputMux.output() ]
+        o = [ self.outputMux.output() ]
       else:
-        return [ self.outputMux.output() ] + self.gridOutput()[-(self.widthOut - 1):]
+        o = [ self.outputMux.output() ] + self.gridOutput()[-(self.widthOut - 1):]
+
+    self.history.append(o)
+    return o
 
   def randomizeGates(self):
     for dIdx in range(self.gridDepth()):
@@ -275,11 +282,30 @@ class Module(BaseCell):
           self.cells[dIdx][wIdx].setOperator(CellType.randOpType())
         else:
           self.cells[dIdx][wIdx].setOperator(CellType._xor)
+        self.cells[dIdx][wIdx].setOperator(CellType._xor)
 
   def moduleHasFixedCells(self):
+    numFixedCells = 0
     for dIdx in range(self.gridDepth()):
       for wIdx in range(self.gridWidth()):
         if self.cells[dIdx][wIdx].cellHistoryFixed():
-          return True
+          if self.cells[dIdx][wIdx].cellHistoryFixed(): 
+            numFixedCells += 1
 
-    return False
+    if numFixedCells > 0:
+      print ('fixed module cells : ' + str(numFixedCells))
+    return (numFixedCells > 0)
+
+  def outputHistory(self):
+    return self.history
+
+  def outputsFixed(self):
+    oFixed = 0
+    for i in range(self.widthOut):
+      sumHistory = sum([int(x[i]) for x in self.outputHistory() ])
+      if sumHistory == 0 or sumHistory == len(self.outputHistory()):
+        oFixed += 1
+
+    if oFixed > 0:
+      print ('fixed module outputs : ' + str(oFixed))
+    return (oFixed > 0)
