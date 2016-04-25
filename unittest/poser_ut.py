@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch, call
+import re
 
 import os.path
 import sys
@@ -8,13 +10,13 @@ from poser import ModuleParser
 
 
 class ModuleNameParseTests (unittest.TestCase):
-  moduleSingleLine = "module singleLine();"
-  moduleWhiteSpace = "  module    whiteSpace  ()  ;"
-  moduleLeadingChars = "blah blah blah\nmodule leadingChars();"
-  moduleLineComment = "// module bmodule blah\nmodule lineComment();\n// module bogus\n"
-  moduleOpenCloseComment = "m/**/odule ocC/*blah */omme/* blat */nt();"
-  moduleMultiLine = "module\n_2lineName();"
-  moduleMultiLineWithComment = "module//biggle\n_2lineName();"
+  moduleSingleLine = "module singleLine();endmodule"
+  moduleWhiteSpace = "  module    whiteSpace  ()  ;endmodule"
+  moduleLeadingChars = "blah blah blah\nmodule leadingChars();endmodule"
+  moduleLineComment = "// module bmodule blah\nmodule lineComment();\n// module bogus\nendmodule"
+  moduleOpenCloseComment = "m/**/odule ocC/*blah */omme/* blat */nt();endmodule"
+  moduleMultiLine = "module\n_2lineName();endmodule"
+  moduleMultiLineWithComment = "module//biggle\n_2lineName();endmodule"
 
   def setUp(self):
     self.mp = ModuleParser()
@@ -51,13 +53,14 @@ class ModuleNameParseTests (unittest.TestCase):
     self.assertEqual(self.mp.getModuleName(), '_2lineName')
 
 
-class ModuleParseTests (unittest.TestCase):
-  moduleSingleInput = "input blah;"
-  moduleInputKeyword = "binput blah;\n input    wag ;"
-  moduleTwoInputs = "input blah;\n input    wag ;"
-  moduleMultipleInputs = "input blah,wag, bag ;"
-  moduleMultipleVectorInputs = " input [1:2] blah,wag, bag ;"
+class ModuleNonAnsiPortTests (unittest.TestCase):
+  moduleSinglePort = "port blah;"
+  modulePortKeyword = "bport blah;\n port    wag ;"
+  moduleTwoPorts = "port blah;\n port    wag ;"
+  moduleMultiplePorts = "port blah,wag, bag ;"
+  moduleMultipleVectorPorts = " port [1:2] blah,wag, bag ;"
   moduleSingleOutput = "output foo;"
+  type = ''
 
   def setUp(self):
     self.mp = ModuleParser()
@@ -65,30 +68,71 @@ class ModuleParseTests (unittest.TestCase):
   def tearDown(self):
     pass
 
-  def test1Input(self):
-    self.mp.parse(self.moduleSingleInput)
-    self.assertEqual(self.mp.getInputs(), [ 'input blah;' ])
+  def test1Port(self):
+    p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleSinglePort))
+    self.assertEqual(p, self.changePortType([ 'port blah;' ]))
 
-  def testInputKeyword(self):
-    self.mp.parse(self.moduleInputKeyword)
-    self.assertEqual(self.mp.getInputs(), [ 'input wag;' ])
+  def testPortKeyword(self):
+    p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.modulePortKeyword))
+    self.assertEqual(p, self.changePortType([ 'port wag;' ]))
 
-  def test2Input(self):
-    self.mp.parse(self.moduleTwoInputs)
-    self.assertEqual(self.mp.getInputs(), [ 'input blah;', 'input wag;' ])
+  def test2Port(self):
+    p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleTwoPorts))
+    self.assertEqual(p, self.changePortType([ 'port blah;', 'port wag;' ]))
 
-  def testMultiInput(self):
-    self.mp.parse(self.moduleMultipleInputs)
-    self.assertEqual(self.mp.getInputs(), [ 'input blah;', 'input wag;', 'input bag;' ])
+  def testMultiPort(self):
+    p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleMultiplePorts))
+    self.assertEqual(p, self.changePortType([ 'port blah;', 'port wag;', 'port bag;' ]))
 
-  def testMultiVectorInput(self):
-    self.mp.parse(self.moduleMultipleVectorInputs)
-    self.assertEqual(self.mp.getInputs(), [ 'input [1:2] blah;', 'input [1:2] wag;', 'input [1:2] bag;' ])
+  def testMultiVectorPort(self):
+    p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleMultipleVectorPorts))
+    self.assertEqual(p, self.changePortType([ 'port [1:2] blah;', 'port [1:2] wag;', 'port [1:2] bag;' ]))
 
-  def test1Output(self):
-    self.mp.parse(self.moduleSingleOutput)
-    self.assertEqual(self.mp.getOutputs(), [ 'output foo;' ])
+  def changePortType(self, str):
+    if isinstance(str, list):
+      l = []
+      for s in str:
+        l.append(re.sub('port', self.type, s))
+      return l
+    else:
+      return re.sub('port', self.type, str)
+
+  def setType(self, t):
+    self.type = t
+
+
+class ModuleNonAnsiInputTests(ModuleNonAnsiPortTests):
+  def __init__(self, *args, **kwargs):
+    super(ModuleNonAnsiInputTests, self).__init__(*args, **kwargs)
+    self.setType('input')
+
+
+class ModuleNonAnsiOutputTests(ModuleNonAnsiPortTests):
+  def __init__(self, *args, **kwargs):
+    super(ModuleNonAnsiOutputTests, self).__init__(*args, **kwargs)
+    self.setType('output')
+
+
+class ModuleParseTests(unittest.TestCase):
+  def setUp(self):
+    self.mp = ModuleParser()
+
+  def tearDown(self):
+    pass
+
+  @patch('poser.ModuleParser.nonAnsiPorts')
+  def testCallsNonAnsiPorts(self, mock_nonAnsiPorts):
+    calls = [ call( 'input', ''), call( 'output', '') ]
+    self.mp.parse('')
+    mock_nonAnsiPorts.assert_has_calls(calls)
+
+  @patch('poser.ModuleParser.nonAnsiPorts')
+  def testCallsNonAnsiPorts(self, mock_nonAnsiPorts):
+    calls = [ call( 'input', 'module sketchy jinx endmodule'), call( 'output', 'module sketchy jinx endmodule') ]
+    self.mp.parse('blah module sketchy jinx endmodule input bag')
+    mock_nonAnsiPorts.assert_has_calls(calls)
 
 
 if __name__ == "__main__":
+  del ModuleNonAnsiPortTests
   unittest.main()

@@ -4,6 +4,7 @@ class ModuleParser:
   def __init__(self):
     self.moduleName = ''
     self.inputs = []
+    self.outputs = []
 
   def parse(self, fileStr):
     # full line comments
@@ -15,15 +16,17 @@ class ModuleParser:
     # remove the /* */ comments
     fileStr = re.sub(r'/\*.*?\*/', '', fileStr)
 
-    fileStr = re.sub(r'.*\bmodule', 'module', fileStr)
+    # module -> endmodule inclusive
+    matchObj = re.search(r'.*(\bmodule\b.*\bendmodule\b).*', fileStr)
+    fileStr = matchObj.group(1)
 
-    modules = re.findall(r'^module\s*\w+', fileStr)
-    if modules:
-      self.moduleName = re.split(r'\W+', modules[0])[1]
+    # module name
+    matchObj = re.search(r'^module\s*(\w+)\b', fileStr)
+    self.moduleName = matchObj.group(1)
 
     # non-ANSI
-    self.outputs = re.findall(r'output\s*\w+\s*;', fileStr)
     self.inputs = self.nonAnsiPorts('input', fileStr)
+    self.outputs = self.nonAnsiPorts('output', fileStr)
 
  
   def nonAnsiPorts(self, type, str):
