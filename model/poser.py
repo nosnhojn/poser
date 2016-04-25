@@ -186,6 +186,8 @@ class Module(BaseCell):
     idx = 0
     if n > 0:
       probability = int (n/(self.gridDepth() * self.gridWidth()) * 100)
+      if probability == 0:
+        probability += 1
       while cnt < n:
         dIdx = int(idx/self.gridWidth())
         wIdx = idx%self.gridWidth()
@@ -294,8 +296,8 @@ class Module(BaseCell):
           if self.cells[dIdx][wIdx].cellHistoryFixed(): 
             numFixedCells += 1
 
-#   if numFixedCells > 0:
-#     print ('fixed module cells : ' + str(numFixedCells))
+    if numFixedCells > 0:
+      print ('fixed module cells : ' + str(numFixedCells))
     return (numFixedCells > 0)
 
   def outputHistory(self):
@@ -308,6 +310,6 @@ class Module(BaseCell):
       if sumHistory == 0 or sumHistory == len(self.outputHistory()):
         oFixed += 1
 
-#   if oFixed > 0:
-#     print ('fixed module outputs : ' + str(oFixed))
+    if oFixed > 0:
+      print ('fixed module outputs : ' + str(oFixed))
     return (oFixed > 0)
