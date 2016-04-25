@@ -1,5 +1,5 @@
 import unittest
-from poser import Cell, Rand, Module, OutputType, CellType, Mux
+from model import Cell, Module, OutputType, CellType, Mux
 import random 
 
 

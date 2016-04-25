@@ -3,8 +3,6 @@ import random
 import math
 import functools
 
-_rn = [ 1, 1, 1, 0, 1 ]
-
 class BaseCell:
   def __init__(self):
     pass
@@ -13,24 +11,10 @@ class BaseCell:
     pass
 
 
-class Rand(BaseCell):
-  def clk(self):
-    BaseCell.clk(self)
-    _rn[4] = _rn[4] ^ _rn[1] % 2
-    _rn[3] = _rn[3] ^ _rn[0] % 2
-    _rn[2] = _rn[2] ^ _rn[4] % 2
-    _rn[1] = _rn[1] ^ _rn[3] % 2
-    _rn[0] = _rn[0] ^ _rn[2] % 2
-
-    return       _rn[0] \
-           + 2 * _rn[1] \
-           + 4 * _rn[2] \
-           + 8 * _rn[3] \
-           + 16 * _rn[4]
-
 class OutputType(Enum):
   async = 0
   sync = 1
+
 
 class CellType(Enum):
   _and = 0
@@ -55,6 +39,7 @@ class CellType(Enum):
       return CellType._xnor
     else:
       return CellType._xor
+
 
 class Mux(BaseCell):
   def __init__(self):
@@ -145,6 +130,7 @@ class Cell(BaseCell):
 
   def getOutputType(self):
     return self._outputType
+
 
 class Module(BaseCell):
   def __init__(self):

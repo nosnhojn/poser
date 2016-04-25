@@ -1,5 +1,5 @@
 import unittest
-from poser import Rand, Module, OutputType
+from model import Module, OutputType
 import random 
 
 
