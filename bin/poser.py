@@ -1,5 +1,17 @@
 import re
 
+class IO:
+  def __init__(self, type, name, size = 1):
+    self.type = type
+    self.name = name
+    self.size = size
+
+  def __eq__(self, other):
+    return self.type == other.type and \
+           self.name == other.name and \
+           self.size == other.size
+
+
 class ModuleParser:
   def __init__(self):
     self.moduleName = ''
@@ -33,13 +45,15 @@ class ModuleParser:
     ports = []
     _ports = re.finditer(r'(\b%s\b(?:\s*\[.*\])?)\s*(\w+)((?:\s*,\s*\w+\s*)*)\s*;' % type, str)
     for _p in _ports:
-      ports.append('%s %s;' % (_p.group(1), _p.group(2)))
+      #ports.append('%s %s;' % (_p.group(1), _p.group(2)))
+      ports.append(IO(_p.group(1), _p.group(2)))
       if _p.group(3):
         others = re.sub(' ', '', _p.group(3))
         others = re.split(',', others)
         for o in others:
           if o != '':
-            ports.append('%s %s;' % (_p.group(1), o))
+            #ports.append('%s %s;' % (_p.group(1), o))
+            ports.append(IO(_p.group(1), o))
 
     return ports
 

@@ -6,7 +6,7 @@ import os.path
 import sys
 sys.path.append(os.path.abspath('../bin'))
 
-from poser import ModuleParser
+from poser import ModuleParser, IO
 
 
 class ModuleNameParseTests (unittest.TestCase):
@@ -58,7 +58,7 @@ class ModuleNonAnsiPortTests (unittest.TestCase):
   modulePortKeyword = "bport blah;\n port    wag ;"
   moduleTwoPorts = "port blah;\n port    wag ;"
   moduleMultiplePorts = "port blah,wag, bag ;"
-  moduleMultipleVectorPorts = " port [1:2] blah,wag, bag ;"
+  moduleMultipleVectorPorts = " port [1:0] blah,wag, bag ;"
   moduleSingleOutput = "output foo;"
   type = ''
 
@@ -70,32 +70,35 @@ class ModuleNonAnsiPortTests (unittest.TestCase):
 
   def test1Port(self):
     p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleSinglePort))
-    self.assertEqual(p, self.changePortType([ 'port blah;' ]))
+    self.assertEqual(p, self.changePortType([ IO('port', 'blah') ]))
 
   def testPortKeyword(self):
     p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.modulePortKeyword))
-    self.assertEqual(p, self.changePortType([ 'port wag;' ]))
+    self.assertEqual(p, self.changePortType([ IO('port', 'wag') ]))
 
   def test2Port(self):
     p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleTwoPorts))
-    self.assertEqual(p, self.changePortType([ 'port blah;', 'port wag;' ]))
+    self.assertEqual(p, self.changePortType([ IO('port', 'blah'), IO('port', 'wag') ]))
 
   def testMultiPort(self):
     p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleMultiplePorts))
-    self.assertEqual(p, self.changePortType([ 'port blah;', 'port wag;', 'port bag;' ]))
+    self.assertEqual(p, self.changePortType([ IO('port', 'blah'), IO('port', 'wag'), IO('port', 'bag') ]))
 
   def testMultiVectorPort(self):
     p = self.mp.nonAnsiPorts(self.type, self.changePortType(self.moduleMultipleVectorPorts))
-    self.assertEqual(p, self.changePortType([ 'port [1:2] blah;', 'port [1:2] wag;', 'port [1:2] bag;' ]))
+    self.assertEqual(p, self.changePortType([ IO('port', 'blah', 2), IO('port', 'wag', 2), IO('port', 'bag', 2) ]))
 
-  def changePortType(self, str):
-    if isinstance(str, list):
+  def changePortType(self, io):
+    if isinstance(io, list):
       l = []
-      for s in str:
-        l.append(re.sub('port', self.type, s))
+      for s in io:
+        if isinstance(s, IO):
+          l.append(IO(self.type, s.name, s.size))
+        else:
+          l.append(re.sub('port', self.type, s))
       return l
     else:
-      return re.sub('port', self.type, str)
+      return re.sub('port', self.type, io)
 
   def setType(self, t):
     self.type = t
