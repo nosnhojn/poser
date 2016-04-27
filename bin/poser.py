@@ -1,15 +1,18 @@
 import re
 
 class IO:
-  def __init__(self, type, name, size = 1):
-    self.type = type
-    self.name = name
-    self.size = size
+  def __init__(self, type, name, size = '1'):
+    self.type = re.sub('^\s*(.*)\s*$', '\\1', type)
+    self.name = re.sub('\s*', '', name)
+    self.size = re.sub('\s*', '', size)
 
   def __eq__(self, other):
     return self.type == other.type and \
            self.name == other.name and \
            self.size == other.size
+
+  def __str__(self):
+    return 'type:%s name:%s size:%s' % (self.type, self.name, self.size)
 
 
 class ModuleParser:
@@ -18,42 +21,65 @@ class ModuleParser:
     self.inputs = []
     self.outputs = []
 
+
+
   def parse(self, fileStr):
-    # full line comments
-    fileStr = re.sub(r'//.*\n', ' ', fileStr)
-
-    # remove the \n
-    fileStr = re.sub(r'\n', ' ', fileStr)
-
-    # remove the /* */ comments
-    fileStr = re.sub(r'/\*.*?\*/', '', fileStr)
-
-    # module -> endmodule inclusive
-    matchObj = re.search(r'.*(\bmodule\b.*\bendmodule\b).*', fileStr)
-    fileStr = matchObj.group(1)
+    moduleText = self.scrubModule(fileStr)
 
     # module name
-    matchObj = re.search(r'^module\s*(\w+)\b', fileStr)
-    self.moduleName = matchObj.group(1)
+    self.moduleName = self.getModuleNameFromString(moduleText)
 
     # non-ANSI
-    self.inputs = self.nonAnsiPorts('input', fileStr)
-    self.outputs = self.nonAnsiPorts('output', fileStr)
+    self.inputs = self.parsePorts('input', moduleText)
+    self.outputs = self.parsePorts('output', moduleText)
 
+  def scrubModule(self, str):
+    # full line comments
+    ret = re.sub(r'//.*\n', ' ', str)
+
+    # remove the \n
+    ret = re.sub(r'\n', ' ', ret)
+
+    # remove the /* */ comments
+    ret = re.sub(r'/\*.*?\*/', '', ret)
+
+    # module -> endmodule inclusive
+    ret = re.sub(r'.*(\bmodule\b.*\bendmodule\b).*', '\\1', ret)
+
+    return ret
+
+  def getModuleNameFromString(self, str):
+    matchObj = re.search(r'^module\s*(\w+)\b', str)
+    return matchObj.group(1)
+    
+  def getVectorSizeFromString(self, str):
+    vector = re.search(r'\[(.*):(.*)\]', str)
+    if vector:
+      size = '%s-%s+1' % (vector.group(1), vector.group(2))
+    else:
+      size = '1'
+
+    return size
+
+  def getTypeFromString(self, str):
+    return re.sub(r'\s*\[.*', '', str)
+
+  def getNamesFromString(self, str):
+    return re.split(',', str)
  
-  def nonAnsiPorts(self, type, str):
+  def portsIter(self, type, str):
+    # (type ([])) (name, other names, etc);
+    return re.finditer( r'(\b%s\b(?:\s*\[.*\])?)\s*(\w+((?:\s*,\s*(?!input|output)\w+\s*)*))\s*' % type, str)
+
+  def parsePorts(self, type, str):
     ports = []
-    _ports = re.finditer(r'(\b%s\b(?:\s*\[.*\])?)\s*(\w+)((?:\s*,\s*\w+\s*)*)\s*;' % type, str)
+    _ports = self.portsIter(type, str)
     for _p in _ports:
-      #ports.append('%s %s;' % (_p.group(1), _p.group(2)))
-      ports.append(IO(_p.group(1), _p.group(2)))
-      if _p.group(3):
-        others = re.sub(' ', '', _p.group(3))
-        others = re.split(',', others)
-        for o in others:
-          if o != '':
-            #ports.append('%s %s;' % (_p.group(1), o))
-            ports.append(IO(_p.group(1), o))
+      _type = self.getTypeFromString(_p.group(1))
+      _size = self.getVectorSizeFromString(_p.group(1))
+      _name = self.getNamesFromString(_p.group(2))
+      for _n in _name:
+        ports.append(IO(_type, _n, _size))
 
     return ports
 
