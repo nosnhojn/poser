@@ -1,4 +1,4 @@
 module module0(bar, foo);
   input bar;
-  output foo;
+  output reg foo;
 endmodule

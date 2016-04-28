@@ -17,6 +17,7 @@ class ModuleNameParseTests (unittest.TestCase):
   moduleOpenCloseComment = "/*\nmodule not\n*/m/**/odule ocC/*blah */omme/* blat */nt();/*\nmodule not\n*/endmodule"
   moduleMultiLine = "module\n_2lineName();endmodule"
   moduleMultiLineWithComment = "module//biggle\n_2lineName();endmodule"
+  moduleWireRegLogic = "module wire reg logic logicwireregbiggle();endmodule"
 
   def setUp(self):
     self.mp = ModuleParser()
@@ -51,6 +52,10 @@ class ModuleNameParseTests (unittest.TestCase):
   def testModuleNameTwoLinesWithComment(self):
     self.mp.parse(self.moduleMultiLineWithComment)
     self.assertEqual(self.mp.getModuleName(), '_2lineName')
+
+  def testWireRegLogicAreScrubbed(self):
+    self.mp.parse(self.moduleWireRegLogic)
+    self.assertEqual(self.mp.getModuleName(), 'logicwireregbiggle')
 
 class BaseTestClasses:
   class ModulePortTests (unittest.TestCase):

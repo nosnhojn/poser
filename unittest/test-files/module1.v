@@ -1,5 +1,5 @@
 module module1 (
   input bar,
-  output foo
+  output wire foo
 );
 endmodule

@@ -104,6 +104,11 @@ class ModuleParser:
     # module -> endmodule inclusive
     ret = re.sub(r'.*(\bmodule\b.*\bendmodule\b).*', '\\1', ret)
 
+    # scrub reg, wire and logic from everywhere (so they don't appear in the output types)
+    ret = re.sub(r'\breg\b', '', ret)
+    ret = re.sub(r'\bwire\b', '', ret)
+    ret = re.sub(r'\blogic\b', '', ret)
+
     return ret
 
   def getModuleNameFromString(self, str):
