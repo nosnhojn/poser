@@ -24,7 +24,7 @@ class ModuleParser:
     self.nonAnsiParams = ''
     self.inputs = []
     self.outputs = []
-    self.preamble = ''
+    self.preamble = []
 
   def nonAnsiParametersAsString(self):
     _params = [ ('  %s\n' % x) for x in self.nonAnsiParams ]
@@ -34,11 +34,16 @@ class ModuleParser:
     return self.ansiParams
 
   def preambleAsString(self):
-    return self.preamble
+    _preamble = ''
+    for _p in self.preamble:
+      if re.search('\S', _p):
+        _preamble = '%s%s\n' % (_preamble, _p)
+
+    return _preamble
 
   def moduleAsString(self):
-    #_module  = self.preambleAsString()
-    _module  = 'module %s' % self.moduleName
+    _module  = self.preambleAsString()
+    _module += 'module %s' % self.moduleName
     if self.ansiParams:
       _module  += ' #(%s)' % self.ansiParams
     _module += '(%s);\n' % self.moduleIOAsString()
@@ -87,9 +92,11 @@ class ModuleParser:
     ret = re.sub(r'/\*[^(\*/)]*\*/', '', ret)
 
     # extract the preamble
-    #self.preamble = re.match(r'(.*)(?=\bmodule\b)', ret)
-    #self.preamble = re.match(r'(.*?)(?=module)', ret, re.M)
-    self.preamble = re.sub(r'\bmodule\b.*', '', ret, re.M)
+    self.preamble = re.split('\n', ret)
+    for i in range(len(self.preamble)):
+      if re.match('\s*module\s+', self.preamble[i]):
+        self.preamble = self.preamble[:i]
+        break
 
     # remove the \n
     ret = re.sub(r'\n', ' ', ret)

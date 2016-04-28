@@ -221,11 +221,11 @@ class ModuleParseTests(unittest.TestCase):
     self.assertEqual(self.mp.nonAnsiParametersAsString(), '  parameter ding = dong;\n  parameter dkf==,, = =kdk;\n')
 
   def testPreambleAsString(self):
-    self.mp.parse('blah\nsome stuff\n`include bogus\n`define blah what\nwang module name();endmodule')
-    self.assertEqual(self.mp.preambleAsString(), 'blah\nsome stuff\n`include bogus\n`define blah what\nwang ')
+    self.mp.parse('goats\nsome stuff\n`include bogus\n`define blah what\n module name();endmodule')
+    self.assertEqual(self.mp.preambleAsString(), 'goats\nsome stuff\n`include bogus\n`define blah what\n')
 
   def testNoPreambleAsString(self):
-    self.mp.parse('module name();input something;endmodule')
+    self.mp.parse(' module name();input something;endmodule')
     self.assertEqual(self.mp.preambleAsString(), '')
 
 class ModuleOutput(unittest.TestCase):
