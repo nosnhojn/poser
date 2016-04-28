@@ -14,7 +14,7 @@ class ModuleNameParseTests (unittest.TestCase):
   moduleWhiteSpace = "  module    whiteSpace  ()  ;endmodule"
   moduleLeadingChars = "blah blah blah\nmodule leadingChars();endmodule"
   moduleLineComment = "// module bmodule blah\nmodule lineComment();\n// module bogus\nendmodule"
-  moduleOpenCloseComment = "m/**/odule ocC/*blah */omme/* blat */nt();endmodule"
+  moduleOpenCloseComment = "/*\nmodule not\n*/m/**/odule ocC/*blah */omme/* blat */nt();/*\nmodule not\n*/endmodule"
   moduleMultiLine = "module\n_2lineName();endmodule"
   moduleMultiLineWithComment = "module//biggle\n_2lineName();endmodule"
 
@@ -60,6 +60,7 @@ class BaseTestClasses:
     moduleMultiplePorts = ''
     moduleMultipleVectorPorts = ''
     moduleSingleOutput = ''
+    moduleIrregularSpacing = ''
     type = ''
 
     def setUp(self):
@@ -86,14 +87,23 @@ class BaseTestClasses:
 
     def testMultiVectorPort(self):
       p = self.mp.parsePorts(self.type, self.changePortType(self.moduleMultipleVectorPorts))
-      self.assertEqual(p, self.changePortType([ IO('port', 'blah', '1-0+1'), IO('port', 'wag', '1-0+1'), IO('port', 'bag', '1-0+1') ]))
+      self.assertEqual(p, self.changePortType([ IO('port', 'blah', '1', '0'), IO('port', 'wag', '1', '0'), IO('port', 'bag', '1', '0') ]))
+
+    def testIrregularlySpacedPort(self):
+      p = self.mp.parsePorts(self.type, self.changePortType(self.moduleIrregularSpacing))
+      self.assertEqual(p, self.changePortType([ IO('port', 'blah', '1', '0'),
+                                                IO('port', 'wag', '1', '0'),
+                                                IO('port', 'bag', '1', '0'),
+                                                IO('port', 'dang'),
+                                                IO('port', 'biggy', 'flaGGs-54', '34'),
+                                             ]))
 
     def changePortType(self, io):
       if isinstance(io, list):
         l = []
         for s in io:
           if isinstance(s, IO):
-            l.append(IO(self.type, s.name, s.size))
+            l.append(IO(self.type, s.name, s.msb, s.lsb))
           else:
             l.append(re.sub('port', self.type, s))
         return l
@@ -114,6 +124,7 @@ class BaseTestClasses:
       self.moduleMultiplePorts = "module blah(); port blah,wag, bag ; endmodule"
       self.moduleMultipleVectorPorts = "module blah();  port [1:0] blah,wag, bag ; endmodule"
       self.moduleSingleOutput = "module blah(); output foo; endmodule"
+      self.moduleIrregularSpacing = "module blah();   port[1:0]blah,wag, bag ;port       dang  ; port[flaGGs-54:  34] biggy;endmodule"
 
 
   class ModuleAnsiPortTests (ModulePortTests):
@@ -126,6 +137,7 @@ class BaseTestClasses:
       self.moduleMultiplePorts = "module blah (port blah,wag, bag )"
       self.moduleMultipleVectorPorts = "module blah ( port [1:0] blah,wag, bag ) ;"
       self.moduleSingleOutput = "module blah (output foo);"
+      self.moduleIrregularSpacing = "module blah(port[1:0]blah,wag, bag ,port       dang  , port[flaGGs-54:  34] biggy);endmodule"
 
 
 class ModuleNonAnsiInputTests(BaseTestClasses.ModuleNonAnsiPortTests):
@@ -177,6 +189,44 @@ class ModuleParseTests(unittest.TestCase):
     self.mp.parse('blah module name(); sketchy jinx endmodule input bag')
     mock_nonAnsiPorts.assert_has_calls(calls)
 
+  def testIOAsString(self):
+    self.mp.inputs = [ IO('input', 'a'), IO('input', 'b') ]
+    self.mp.outputs = [ IO('output', 'c') ]
+    self.assertEqual(self.mp.moduleIOAsString(), 'a, b, c')
+
+  def testSimplePortListAsString(self):
+    self.mp.inputs = [ IO('input', 'a'), IO('input', 'b') ]
+    self.mp.outputs = [ IO('output', 'c') ]
+
+    _expect  = '  input a;\n'
+    _expect += '  input b;\n'
+    _expect += '  output c;\n'
+    self.assertEqual(self.mp.modulePortsAsString(), _expect)
+
+  def testVectorPortListAsString(self):
+    self.mp.inputs = [ IO('input', 'a', 'blah', 'jIb'), IO('input', 'b', '2', '0') ]
+    self.mp.outputs = [ IO('output', 'c', '5-1+`WHAT', '31') ]
+
+    _expect  = '  input [blah:jIb] a;\n'
+    _expect += '  input [2:0] b;\n'
+    _expect += '  output [5-1+`WHAT:31] c;\n'
+    self.assertEqual(self.mp.modulePortsAsString(), _expect)
+
+  def testAnsiParametersAsString(self):
+    self.mp.parse('blah module name #(some stuff\n, yok=al\n) (); sketchy jinx endmodule input bag')
+    self.assertEqual(self.mp.ansiParametersAsString(), 'some stuff , yok=al ')
+
+  def testNonAnsiParametersAsString(self):
+    self.mp.parse('blah module name  (); parameter ding = dong; boo-urns; parameter dkf==,,\n=\n=kdk; sketchy jinx endmodule input bag')
+    self.assertEqual(self.mp.nonAnsiParametersAsString(), '  parameter ding = dong;\n  parameter dkf==,, = =kdk;\n')
+
+  def testPreambleAsString(self):
+    self.mp.parse('blah\nsome stuff\n`include bogus\n`define blah what\nwang module name();endmodule')
+    self.assertEqual(self.mp.preambleAsString(), 'blah\nsome stuff\n`include bogus\n`define blah what\nwang ')
+
+  def testNoPreambleAsString(self):
+    self.mp.parse('module name();input something;endmodule')
+    self.assertEqual(self.mp.preambleAsString(), '')
 
 class ModuleOutput(unittest.TestCase):
   def setUp(self):
