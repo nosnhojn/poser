@@ -17,6 +17,11 @@ class IO:
     return 'type:%s name:%s msb:%s lsb:%s' % (self.type, self.name, self.msb, self.lsb)
 
 
+class Active:
+  lo = 0
+  hi = 1
+
+
 class ModuleParser:
   def __init__(self):
     self.moduleName = ''
@@ -25,6 +30,67 @@ class ModuleParser:
     self.inputs = []
     self.outputs = []
     self.preamble = []
+    self.gridWidth = 0
+    self.gridDepth = 0
+    self.clkName = ''
+    self.rstName = ''
+
+  def setGridSize(self, width, depth):
+    self.gridWidth = width
+    self.gridDepth = depth
+
+  def setClkName(self, name):
+    self.clkName = name
+
+  def setRstName(self, name, active):
+    self.rstName = name
+
+  def setTied(self, active):
+    pass
+
+  def poserParamsAsString(self):
+    str  = '  parameter poser_tied = 1\'b1;\n'
+    str += '  parameter poser_width_in = %s;\n' % self.getIOWidth(self.inputs)
+    str += '  parameter poser_width_out = %s;\n' % self.getIOWidth(self.outputs)
+    str += '  parameter poser_grid_width = %s;\n' % self.gridWidth
+    str += '  parameter poser_grid_depth = %s;\n' % self.gridDepth
+
+    return str
+
+  def poserGridAsString(self):
+    return '''
+  for (genvar D = 0; D < poser_grid_depth; D++) begin
+    for (genvar W = 0; W < poser_grid_width; W++) begin
+      if (D == 0) begin
+        if (W == 0) begin
+          poserCell pc #(.type(0), .active(0)) (.clk(clk), .rst(rst), ^{ poser_tied , poser_inputs[W] }, poser_grid_output[D][W]);
+        end else begin
+          poserCell pc #(.type(0), .active(0)) (.clk(clk), .rst(rst), ^{ poser_grid_output[D][W-1] , poser_inputs[D][W] }, poser_grid_output[D][W]);
+        end
+      end
+    end
+  end\n'''
+
+  def poserGridOutputsAsString(self):
+    str  = '  wire [poser_grid_width-1:0] poser_grid_output [0:poser_grid_depth-1];\n'
+    str += '  assign poser_outputs = poser_grid_output[poser_grid_depth-1];\n'
+    return str
+
+  def poserInternalInputsAsString(self):
+    return '  wire [poser_width_in-1:0] poser_inputs;\n  assign poser_inputs = { %s };\n' % ",".join([ i.name for i in self.inputs if i.name != self.clkName and i.name != self.rstName ])
+
+  def poserInternalOutputsAsString(self):
+    return '  wire [poser_width_out-1:0] poser_outputs;\n  assign \'{ %s } = poser_outputs;\n' % ",".join([ i.name for i in self.outputs ])
+
+  def getIOWidth(self, io):
+    _io_width = '0'
+    for _io in io:
+      if _io.name != self.clkName and _io.name != self.rstName:
+        if _io.msb != '':
+          _io_width += '+%s-%s+1' % (_io.msb, _io.lsb)
+        else:
+          _io_width += '+1'
+    return _io_width
 
   def nonAnsiParametersAsString(self):
     _params = [ ('  %s\n' % x) for x in self.nonAnsiParams ]
@@ -44,12 +110,24 @@ class ModuleParser:
   def moduleAsString(self):
     _module  = self.preambleAsString()
     _module += 'module %s' % self.moduleName
+
     if self.ansiParams:
       _module  += ' #(%s)' % self.ansiParams
+
     _module += '(%s);\n' % self.moduleIOAsString()
+
     if self.nonAnsiParams:
       _module  += self.nonAnsiParametersAsString()
+
     _module += self.modulePortsAsString()
+
+    if self.gridDepth * self.gridWidth > 0:
+      _module += self.poserParamsAsString()
+      _module += self.poserInternalInputsAsString()
+      _module += self.poserInternalOutputsAsString()
+      _module += self.poserGridOutputsAsString()
+      _module += self.poserGridAsString()
+
     _module += 'endmodule\n'
 
     return _module
