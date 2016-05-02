@@ -226,12 +226,12 @@ class Module(BaseCell):
         else:
           if wIdx == 0:
             self.cells[dIdx][wIdx].driveInputs([
-                                                 self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(),
+                                                 self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), # self.cells[dIdx-1][wIdx]].output(),
                                                  self.cells[dIdx-1][self.gridWidth()-1].output(),
                                               ])
           else:
             self.cells[dIdx][wIdx].driveInputs([
-                                                 self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(),
+                                                 self.cells[dIdx-1][self.connectivityMatrix[dIdx][wIdx]].output(), # self.cells[dIdx-1][wIdx]].output(),
                                                  self.cells[dIdx][wIdx-1].output(),
                                               ])
 

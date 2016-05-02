@@ -59,17 +59,43 @@ class ModuleParser:
 
   def poserGridAsString(self):
     return '''
+  wire poser_clk;
+  assign poser_clk = %s;
+  wire poser_rst;
+  assign poser_rst = %s;
   for (genvar D = 0; D < poser_grid_depth; D++) begin
     for (genvar W = 0; W < poser_grid_width; W++) begin
       if (D == 0) begin
         if (W == 0) begin
-          poserCell pc #(.type(0), .active(0)) (.clk(clk), .rst(rst), ^{ poser_tied , poser_inputs[W] }, poser_grid_output[D][W]);
+          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
+                                                .rst(poser_rst),
+                                                .i(^{ poser_tied ,
+                                                      poser_inputs[W] }),
+                                                .o(poser_grid_output[D][W]));
         end else begin
-          poserCell pc #(.type(0), .active(0)) (.clk(clk), .rst(rst), ^{ poser_grid_output[D][W-1] , poser_inputs[D][W] }, poser_grid_output[D][W]);
+          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
+                                                .rst(poser_rst),
+                                                .i(^{ poser_grid_output[D][W-1],
+                                                      poser_inputs[D][W] }),
+                                                .o(poser_grid_output[D][W]));
+        end
+      end else begin
+        if (W == 0) begin
+          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
+                                                .rst(poser_rst),
+                                                .i(^{ poser_grid_output[D-1][W],
+                                                      poser_grid_output[D-1][poser_grid_depth-1] }),
+                                                .o(poser_grid_output[D][W]));
+        end else begin
+          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
+                                                .rst(poser_rst),
+                                                .i(^{ poser_grid_output[D-1][W],
+                                                      poser_grid_output[D][W-1] }),
+                                                .o(poser_grid_output[D][W]));
         end
       end
     end
-  end\n'''
+  end\n''' % (self.clkName, self.rstName)
 
   def poserGridOutputsAsString(self):
     str  = '  wire [poser_grid_width-1:0] poser_grid_output [0:poser_grid_depth-1];\n'

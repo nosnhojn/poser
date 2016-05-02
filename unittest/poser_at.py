@@ -71,6 +71,24 @@ class ModuleArrayTests(ModuleIOBaseTests):
     self.mp.parse(self.fileAsString('./test-files/poser-module0.v'))
     self.assertEqual(self.mp.moduleAsString(), self.fileAsString('./test-files/poser-module0-gold.v'))
 
+  def testModule2x2GridMultipleIO(self):
+    self.maxDiff = None
+    self.mp.setGridSize(2, 2)
+    self.mp.setClkName('clk_')
+    self.mp.setRstName('rst_', Active.lo)
+    self.mp.setTied(Active.hi)
+    self.mp.parse(self.fileAsString('./test-files/poser-module1.v'))
+    self.assertEqual(self.mp.moduleAsString(), self.fileAsString('./test-files/poser-module1-gold.v'))
+
+  def testModule9x5GridMultipleIO(self):
+    self.maxDiff = None
+    self.mp.setGridSize(5, 9)
+    self.mp.setClkName('clk_')
+    self.mp.setRstName('rst_', Active.lo)
+    self.mp.setTied(Active.hi)
+    self.mp.parse(self.fileAsString('./test-files/poser-module2.v'))
+    self.assertEqual(self.mp.moduleAsString(), self.fileAsString('./test-files/poser-module2-gold.v'))
+
 
 
 
