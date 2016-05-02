@@ -1,5 +1,6 @@
 `include "svunit_defines.svh"
 `include "poser-module0-gold.v"
+`include "clk_and_reset.svh"
 
 module module0_unit_test;
   import svunit_pkg::svunit_testcase;
@@ -12,7 +13,16 @@ module module0_unit_test;
   // This is the UUT that we're 
   // running the Unit Tests on
   //===================================
-  module0 my_module0();
+
+  `CLK_RESET_FIXTURE(10,10)
+
+  reg [1:0] bar;
+  wire [1:0] foo;
+  reg [1:0] foo_d;
+  module0 my_module0(.clk_(clk),
+                     .rst_(rst_n),
+                     .bar(bar),
+                     .foo(foo));
 
 
   //===================================
@@ -29,7 +39,8 @@ module module0_unit_test;
   task setup();
     svunit_ut.setup();
     /* Place Setup Code Here */
-
+    bar = 0;
+    reset();
   endtask
 
 
@@ -59,7 +70,17 @@ module module0_unit_test;
   //===================================
   `SVUNIT_TESTS_BEGIN
 
-
+  `SVTEST(randGarbage)
+    nextSamplePoint();
+    repeat (20) begin
+      foo_d = foo;
+      bar = $random();
+      step();
+      nextSamplePoint();
+      `FAIL_IF(foo[0] != bar[0] ^ 1)
+      `FAIL_IF(foo[1] != bar[1] ^ foo_d[0])
+    end
+  `SVTEST_END
 
   `SVUNIT_TESTS_END
 

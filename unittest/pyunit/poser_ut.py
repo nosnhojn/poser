@@ -244,6 +244,7 @@ class ModuleParseTests(unittest.TestCase):
     _expect += '  parameter poser_width_out = 0+1;\n'
     _expect += '  parameter poser_grid_width = 2;\n'
     _expect += '  parameter poser_grid_depth = 1;\n'
+    _expect += '  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = \'{ 2\'b00 };\n'
     self.assertEqual(self.mp.poserParamsAsString(), _expect)
 
   def testPoserParamsIgnoreClkRst(self):
@@ -259,30 +260,49 @@ class ModuleParseTests(unittest.TestCase):
     _expect += '  parameter poser_width_out = 0+1;\n'
     _expect += '  parameter poser_grid_width = 2;\n'
     _expect += '  parameter poser_grid_depth = 1;\n'
+    _expect += '  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = \'{ 2\'b00 };\n'
     self.assertEqual(self.mp.poserParamsAsString(), _expect)
 
   def testPoserInputWidthWithVectors(self):
     self.mp.inputs = [ IO('input', 'a', '8', '1'), IO('input', 'b', 'a', 'A') ]
     self.mp.outputs = [ IO('output', 'c') ]
     self.mp.setTied(Active.hi)
+    self.mp.setGridSize(2, 1)
 
     _expect  = '  parameter poser_tied = 1\'b1;\n'
     _expect += '  parameter poser_width_in = 0+8-1+1+a-A+1;\n'
     _expect += '  parameter poser_width_out = 0+1;\n'
-    _expect += '  parameter poser_grid_width = 0;\n'
-    _expect += '  parameter poser_grid_depth = 0;\n'
+    _expect += '  parameter poser_grid_width = 2;\n'
+    _expect += '  parameter poser_grid_depth = 1;\n'
+    _expect += '  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = \'{ 2\'b00 };\n'
     self.assertEqual(self.mp.poserParamsAsString(), _expect)
 
   def testPoserOutputWidthWithVectors(self):
     self.mp.inputs = [ IO('input', 'c') ]
     self.mp.outputs = [ IO('output', 'a', '8', '1'), IO('input', 'b', 'a', 'A') ]
     self.mp.setTied(Active.hi)
+    self.mp.setGridSize(2, 1)
 
     _expect  = '  parameter poser_tied = 1\'b1;\n'
     _expect += '  parameter poser_width_in = 0+1;\n'
     _expect += '  parameter poser_width_out = 0+8-1+1+a-A+1;\n'
-    _expect += '  parameter poser_grid_width = 0;\n'
-    _expect += '  parameter poser_grid_depth = 0;\n'
+    _expect += '  parameter poser_grid_width = 2;\n'
+    _expect += '  parameter poser_grid_depth = 1;\n'
+    _expect += '  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = \'{ 2\'b00 };\n'
+    self.assertEqual(self.mp.poserParamsAsString(), _expect)
+
+  def testPoserNxMCellTypes(self):
+    self.mp.inputs = [ IO('input', 'c') ]
+    self.mp.outputs = [ IO('output', 'a', '8', '1'), IO('input', 'b', 'a', 'A') ]
+    self.mp.setTied(Active.hi)
+    self.mp.setGridSize(3, 2)
+
+    _expect  = '  parameter poser_tied = 1\'b1;\n'
+    _expect += '  parameter poser_width_in = 0+1;\n'
+    _expect += '  parameter poser_width_out = 0+8-1+1+a-A+1;\n'
+    _expect += '  parameter poser_grid_width = 3;\n'
+    _expect += '  parameter poser_grid_depth = 2;\n'
+    _expect += '  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = \'{ 3\'b000,3\'b000 };\n'
     self.assertEqual(self.mp.poserParamsAsString(), _expect)
 
   def testPoser1InternalInputs(self):
@@ -301,11 +321,11 @@ class ModuleParseTests(unittest.TestCase):
 
   def testPoser1InternalOutputs(self):
     self.mp.outputs = [ IO('output', 'c') ]
-    self.assertEqual(self.mp.poserInternalOutputsAsString(), '  wire [poser_width_out-1:0] poser_outputs;\n  assign \'{ c } = poser_outputs;\n')
+    self.assertEqual(self.mp.poserInternalOutputsAsString(), '  wire [poser_width_out-1:0] poser_outputs;\n  assign { c } = poser_outputs;\n')
 
   def testPoserMultipleInternalOutputs(self):
     self.mp.outputs = [ IO('output', 'c') , IO('output', 'd') ]
-    self.assertEqual(self.mp.poserInternalOutputsAsString(), '  wire [poser_width_out-1:0] poser_outputs;\n  assign \'{ c,d } = poser_outputs;\n')
+    self.assertEqual(self.mp.poserInternalOutputsAsString(), '  wire [poser_width_out-1:0] poser_outputs;\n  assign { c,d } = poser_outputs;\n')
 
   def testPoserGridIODepthN(self):
     self.mp.setGridSize(1, 4)
