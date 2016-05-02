@@ -4,7 +4,7 @@ import re
 
 import os.path
 import sys
-sys.path.append(os.path.abspath('../bin'))
+sys.path.append(os.path.abspath('../../bin'))
 
 from poser import ModuleParser, IO, Active
 
