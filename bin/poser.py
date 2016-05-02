@@ -67,31 +67,31 @@ class ModuleParser:
     for (genvar W = 0; W < poser_grid_width; W++) begin
       if (D == 0) begin
         if (W == 0) begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_tied ,
-                                                      poser_inputs[W] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_tied ,
+                                                             poser_inputs[W] }),
+                                                       .o(poser_grid_output[D][W]));
         end else begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_grid_output[D][W-1],
-                                                      poser_inputs[D][W] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_grid_output[D][W-1],
+                                                             poser_inputs[W] }),
+                                                       .o(poser_grid_output[D][W]));
         end
       end else begin
         if (W == 0) begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_grid_output[D-1][W],
-                                                      poser_grid_output[D-1][poser_grid_depth-1] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_grid_output[D-1][W],
+                                                             poser_grid_output[D-1][poser_grid_depth-1] }),
+                                                       .o(poser_grid_output[D][W]));
         end else begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_grid_output[D-1][W],
-                                                      poser_grid_output[D][W-1] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_grid_output[D-1][W],
+                                                             poser_grid_output[D][W-1] }),
+                                                       .o(poser_grid_output[D][W]));
         end
       end
     end
@@ -106,7 +106,7 @@ class ModuleParser:
     return '  wire [poser_width_in-1:0] poser_inputs;\n  assign poser_inputs = { %s };\n' % ",".join([ i.name for i in self.inputs if i.name != self.clkName and i.name != self.rstName ])
 
   def poserInternalOutputsAsString(self):
-    return '  wire [poser_width_out-1:0] poser_outputs;\n  assign \'{ %s } = poser_outputs;\n' % ",".join([ i.name for i in self.outputs ])
+    return '  wire [poser_width_out-1:0] poser_outputs;\n  assign { %s } = poser_outputs;\n' % ",".join([ i.name for i in self.outputs ])
 
   def getIOWidth(self, io):
     _io_width = '0'

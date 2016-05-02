@@ -11,7 +11,7 @@ module module0(clk_, rst_, bar, foo);
   wire [poser_width_in-1:0] poser_inputs;
   assign poser_inputs = { bar };
   wire [poser_width_out-1:0] poser_outputs;
-  assign '{ foo } = poser_outputs;
+  assign { foo } = poser_outputs;
   wire [poser_grid_width-1:0] poser_grid_output [0:poser_grid_depth-1];
   assign poser_outputs = poser_grid_output[poser_grid_depth-1];
 
@@ -23,31 +23,31 @@ module module0(clk_, rst_, bar, foo);
     for (genvar W = 0; W < poser_grid_width; W++) begin
       if (D == 0) begin
         if (W == 0) begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_tied ,
-                                                      poser_inputs[W] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_tied ,
+                                                             poser_inputs[W] }),
+                                                       .o(poser_grid_output[D][W]));
         end else begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_grid_output[D][W-1],
-                                                      poser_inputs[D][W] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_grid_output[D][W-1],
+                                                             poser_inputs[W] }),
+                                                       .o(poser_grid_output[D][W]));
         end
       end else begin
         if (W == 0) begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_grid_output[D-1][W],
-                                                      poser_grid_output[D-1][poser_grid_depth-1] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_grid_output[D-1][W],
+                                                             poser_grid_output[D-1][poser_grid_depth-1] }),
+                                                       .o(poser_grid_output[D][W]));
         end else begin
-          poserCell pc #(.type(0), .active(0)) (.clk(poser_clk),
-                                                .rst(poser_rst),
-                                                .i(^{ poser_grid_output[D-1][W],
-                                                      poser_grid_output[D][W-1] }),
-                                                .o(poser_grid_output[D][W]));
+          poserCell #(.cellType(0), .activeRst(0)) pc (.clk(poser_clk),
+                                                       .rst(poser_rst),
+                                                       .i(^{ poser_grid_output[D-1][W],
+                                                             poser_grid_output[D][W-1] }),
+                                                       .o(poser_grid_output[D][W]));
         end
       end
     end
