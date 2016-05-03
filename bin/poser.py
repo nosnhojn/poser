@@ -1,4 +1,5 @@
 import re
+import argparse
 
 class IO:
   def __init__(self, type, name, msb = '', lsb = ''):
@@ -278,3 +279,22 @@ class ModuleParser:
 
   def getOutputs(self):
     return self.outputs
+
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(description='Create a verilog module based on flop and size estimates.')
+  parser.add_argument('-f', '--flops', required=True, help='estimated number of flops.')
+  parser.add_argument('-s', '--size', choices=['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl' ], required=True, help='relative size estimate.')
+  parser.add_argument('-v', '--verilog', metavar='file', required=True, help='path to the verilog file with an existing moduel definition.')
+
+  args = parser.parse_args()
+
+  f = open(args.verilog, 'r')
+  _file = f.read()
+
+  mp = ModuleParser()
+  mp.parse(_file)
+
+  print(mp.moduleAsString())
+
+  f.close()

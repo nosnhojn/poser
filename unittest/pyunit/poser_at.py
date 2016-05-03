@@ -52,6 +52,8 @@ class ModuleIOTests(ModuleIOBaseTests):
     self.mp.parse(self.fileAsString('../test-files/module6.v'))
     self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/module6-gold.v'))
 
+  def 
+
 
 
 
