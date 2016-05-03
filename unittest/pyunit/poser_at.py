@@ -68,6 +68,7 @@ class ModuleArrayTests(ModuleIOBaseTests):
     self.mp.setClkName('clk_')
     self.mp.setRstName('rst_', Active.lo)
     self.mp.setTied(Active.hi)
+    self.mp.setNumFlops(2)
     self.mp.parse(self.fileAsString('../test-files/poser-module0.v'))
     self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/poser-module0-gold.v'))
 
@@ -77,6 +78,7 @@ class ModuleArrayTests(ModuleIOBaseTests):
     self.mp.setClkName('clk_')
     self.mp.setRstName('rst_', Active.lo)
     self.mp.setTied(Active.hi)
+    self.mp.setNumFlops(4)
     self.mp.parse(self.fileAsString('../test-files/poser-module1.v'))
     self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/poser-module1-gold.v'))
 
@@ -86,8 +88,18 @@ class ModuleArrayTests(ModuleIOBaseTests):
     self.mp.setClkName('clk_')
     self.mp.setRstName('rst_', Active.lo)
     self.mp.setTied(Active.hi)
+    self.mp.setNumFlops(45)
     self.mp.parse(self.fileAsString('../test-files/poser-module2.v'))
     self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/poser-module2-gold.v'))
+
+  def testModule9x5AsyncGrid(self):
+    self.maxDiff = None
+    self.mp.setGridSize(2, 1)
+    self.mp.setClkName('clk_')
+    self.mp.setRstName('rst_', Active.lo)
+    self.mp.setTied(Active.hi)
+    self.mp.parse(self.fileAsString('../test-files/poser-module3.v'))
+    self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/poser-module3-gold.v'))
 
 
 

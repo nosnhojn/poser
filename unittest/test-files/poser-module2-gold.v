@@ -1,4 +1,4 @@
-module module1(clk_, rst_, bar0, bar1, foo0, foo1);
+module module2(clk_, rst_, bar0, bar1, foo0, foo1);
   input clk_;
   input rst_;
   input [1:0] bar0;
@@ -10,7 +10,7 @@ module module1(clk_, rst_, bar0, bar1, foo0, foo1);
   parameter poser_width_out = 0+1-0+1+1-0+1;
   parameter poser_grid_width = 5;
   parameter poser_grid_depth = 9;
-  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = '{ 5'b00000,5'b00000,5'b00000,5'b00000,5'b00000,5'b00000,5'b00000,5'b00000,5'b00000 };
+  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = '{ 5'b11111,5'b11111,5'b11111,5'b11111,5'b11111,5'b11111,5'b11111,5'b11111,5'b11111 };
   wire [poser_width_in-1:0] poser_inputs;
   assign poser_inputs = { bar0,bar1 };
   wire [poser_width_out-1:0] poser_outputs;
@@ -29,13 +29,13 @@ module module1(clk_, rst_, bar0, bar1, foo0, foo1);
           poserCell #(.cellType(cellTypes[D][W]), .activeRst(0)) pc (.clk(poser_clk),
                                                                      .rst(poser_rst),
                                                                      .i(^{ poser_tied ,
-                                                                           poser_inputs[W] }),
+                                                                           poser_inputs[W%poser_grid_width] }),
                                                                      .o(poser_grid_output[D][W]));
         end else begin
           poserCell #(.cellType(cellTypes[D][W]), .activeRst(0)) pc (.clk(poser_clk),
                                                                      .rst(poser_rst),
                                                                      .i(^{ poser_grid_output[D][W-1],
-                                                                           poser_inputs[W] }),
+                                                                           poser_inputs[W%poser_grid_width] }),
                                                                      .o(poser_grid_output[D][W]));
         end
       end else begin

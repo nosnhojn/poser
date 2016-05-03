@@ -1,4 +1,4 @@
-module module0(clk_, rst_, bar, foo);
+module module3(clk_, rst_, bar, foo);
   input clk_;
   input rst_;
   input [1:0] bar;
@@ -8,7 +8,7 @@ module module0(clk_, rst_, bar, foo);
   parameter poser_width_out = 0+1-0+1;
   parameter poser_grid_width = 2;
   parameter poser_grid_depth = 1;
-  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = '{ 2'b11 };
+  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = '{ 2'b00 };
   wire [poser_width_in-1:0] poser_inputs;
   assign poser_inputs = { bar };
   wire [poser_width_out-1:0] poser_outputs;
