@@ -27,13 +27,13 @@ module module0(clk_, rst_, bar, foo);
           poserCell #(.cellType(cellTypes[D][W]), .activeRst(0)) pc (.clk(poser_clk),
                                                                      .rst(poser_rst),
                                                                      .i(^{ poser_tied ,
-                                                                           poser_inputs[W%poser_grid_width] }),
+                                                                           poser_inputs[W%poser_width_in] }),
                                                                      .o(poser_grid_output[D][W]));
         end else begin
           poserCell #(.cellType(cellTypes[D][W]), .activeRst(0)) pc (.clk(poser_clk),
                                                                      .rst(poser_rst),
                                                                      .i(^{ poser_grid_output[D][W-1],
-                                                                           poser_inputs[W%poser_grid_width] }),
+                                                                           poser_inputs[W%poser_width_in] }),
                                                                      .o(poser_grid_output[D][W]));
         end
       end else begin
