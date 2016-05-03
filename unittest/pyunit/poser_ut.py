@@ -305,6 +305,32 @@ class ModuleParseTests(unittest.TestCase):
     _expect += '  parameter [poser_grid_width-1:0] cellTypes [0:poser_grid_depth-1] = \'{ 3\'b000,3\'b000 };\n'
     self.assertEqual(self.mp.poserParamsAsString(), _expect)
 
+  def getNumFlops(self):
+    _numFlops = 0
+    for i in range(len(self.mp.cellTypes)):
+      _numFlops += len([ x for x in self.mp.cellTypes[i] if x == '1' ])
+    return _numFlops
+
+  def testSet0Flops(self):
+    self.mp.setGridSize(3, 2)
+    self.mp.setNumFlops(0)
+    self.assertEqual(self.getNumFlops(), 0)
+
+  def testSet1Flop(self):
+    self.mp.setGridSize(3, 2)
+    self.mp.setNumFlops(1)
+    self.assertEqual(self.getNumFlops(), 1)
+
+  def testSetNFlops(self):
+    self.mp.setGridSize(100, 50)
+    self.mp.setNumFlops(50)
+    self.assertEqual(self.getNumFlops(), 50)
+
+  def testSetAllFlops(self):
+    self.mp.setGridSize(3, 9)
+    self.mp.setNumFlops(27)
+    self.assertEqual(self.getNumFlops(), 27)
+
   def testPoser1InternalInputs(self):
     self.mp.inputs = [ IO('input', 'c') ]
     self.assertEqual(self.mp.poserInternalInputsAsString(), '  wire [poser_width_in-1:0] poser_inputs;\n  assign poser_inputs = { c };\n')

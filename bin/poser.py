@@ -1,4 +1,5 @@
 import re
+import random
 import argparse
 
 class IO:
@@ -41,6 +42,28 @@ class ModuleParser:
     self.gridWidth = width
     self.gridDepth = depth
     self.cellTypes = [ x[:] for x in [['0']*self.gridWidth]*self.gridDepth ]
+
+  def likelihood(self):
+    n = random.randint(0,99)
+    if n <= 2:
+      return True
+    else:
+      return False
+
+  def setNumFlops(self, n):
+    _cnt = 0
+    wIdx = 0
+    dIdx = 0
+    while _cnt < n:
+      if self.cellTypes[dIdx][wIdx] == '0' and self.likelihood():
+        self.cellTypes[dIdx][wIdx] = '1'
+        _cnt += 1
+      wIdx += 1
+      if wIdx >= self.gridWidth:
+        wIdx = 0
+        dIdx += 1
+        if dIdx >= self.gridDepth:
+          dIdx = 0
 
   def setClkName(self, name):
     self.clkName = name
