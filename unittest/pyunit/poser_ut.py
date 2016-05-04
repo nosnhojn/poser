@@ -356,7 +356,6 @@ class ModuleParseTests(unittest.TestCase):
   def testPoserGridIODepthN(self):
     self.mp.setGridSize(1, 4)
     _expect  = '  wire [poser_grid_width-1:0] poser_grid_output [0:poser_grid_depth-1];\n'
-    _expect += '  assign poser_outputs = poser_grid_output[poser_grid_depth-1];\n'
     self.assertEqual(self.mp.poserGridOutputsAsString(), _expect)
     
 
