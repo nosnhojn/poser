@@ -119,6 +119,15 @@ class ModuleArrayTests(ModuleIOBaseTests):
     self.mp.parse(self.fileAsString('../test-files/poser-module5.v'))
     self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/poser-module5-gold.v'))
 
+  def testModuleGridLargerThanIO(self):
+    self.maxDiff = None
+    self.mp.setGridSize(4, 1)
+    self.mp.setClkName('clk_')
+    self.mp.setRstName('rst_', Active.lo)
+    self.mp.setTied(Active.hi)
+    self.mp.parse(self.fileAsString('../test-files/poser-module6.v'))
+    self.assertEqual(self.mp.moduleAsString(), self.fileAsString('../test-files/poser-module6-gold.v'))
+
 
 
 
