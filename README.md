@@ -28,10 +28,11 @@ optional arguments:
 
 # Examples 
 
-For a relatively large Verilog module in myFile.v with approximately 128 flops, 38 input pins and 41 output pins:
+For a relatively large Verilog module in module.v with approximately 128 flops, 38 input pins and 41 output pins:
 ```
-python3 poser.py --flops 128 --size l --verilog myFile.v --inputs 38 --outputs 41
+python3 poser.py --flops 128 --size l --verilog module.v --inputs 38 --outputs 41 > poserModule.v
 ```
+The poser module is written to STDOUT (or poserModule.v with the redirect). It can be included in place of the real module.v for synthesis, etc. Note: the poserModule.v requires verilog/poserCell.v and verilog/PoserMux.v (these are structures used to build the internals of the poser module).
 
 # Contact
 

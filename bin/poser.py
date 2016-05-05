@@ -327,9 +327,9 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Create a verilog module based on flop and size estimates.')
   parser.add_argument('-f', '--flops', type=int, required=True, help='estimated number of flops.')
   parser.add_argument('-s', '--size', choices=['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl' ], required=True, help='relative size estimate.')
-  parser.add_argument('-v', '--verilog', metavar='file', required=True, help='path to the verilog file with an existing moduel definition.')
-  parser.add_argument('-i', '--inputs', type=int, metavar='input width', required=True, help='Minimum effective input width (i.e. if all inputs were concatentated into 1 vector)')
-  parser.add_argument('-o', '--outputs', type=int, metavar='output width', required=True, help='Minimum effective output width (i.e. if all outputs were concatentated into 1 vector)')
+  parser.add_argument('-v', '--verilog', metavar='FILE', required=True, help='path to the verilog file with an existing moduel definition.')
+  parser.add_argument('-i', '--inputs', type=int, metavar='INPUT_WIDTH', required=True, help='Minimum effective input width (i.e. if all inputs were concatentated into 1 vector)')
+  parser.add_argument('-o', '--outputs', type=int, metavar='OUTPUT_WIDTH', required=True, help='Minimum effective output width (i.e. if all outputs were concatentated into 1 vector)')
 
   args = parser.parse_args()
 
