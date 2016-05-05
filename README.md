@@ -4,29 +4,35 @@ Generate placeholder Verilog modules for early stage physical design layout, etc
 
 # Usage
 
-```usage: poser.py [-h] -f FLOPS -s {xs,s,m,l,xl,xxl,xxxl} -v file -i input width
-                -o output width
+```
+usage: poser.py [-h] -f FLOPS -s {xs,s,m,l,xl,xxl,xxxl} -v FILE -i INPUT_WIDTH -o OUTPUT_WIDTH
 
 Create a verilog module based on flop and size estimates.
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help                                                 show this help message and exit
   -f FLOPS, --flops FLOPS
-                        estimated number of flops.
+                                                             estimated number of flops.
   -s {xs,s,m,l,xl,xxl,xxxl}, --size {xs,s,m,l,xl,xxl,xxxl}
-                        relative size estimate.
-  -v file, --verilog file
-                        path to the verilog file with an existing moduel
-                        definition.
-  -i input width, --inputs input width
-                        Minimum effective input width (i.e. if all inputs were
-                        concatentated into 1 vector)
-  -o output width, --outputs output width
-                        Minimum effective output width (i.e. if all outputs
-                        were concatentated into 1 vector)```
+                                                             relative size estimate.
+  -v FILE, --verilog FILE
+                                                             path to the verilog file with an existing moduel
+                                                             definition.
+  -i INPUT_WIDTH, --inputs INPUT_WIDTH
+                                                             Minimum effective input width (i.e. if all inputs were
+                                                             concatentated into 1 vector)
+  -o OUTPUT_WIDTH, --outputs OUTPUT_WIDTH
+                                                             Minimum effective output width (i.e. if all outputs
+                                                             were concatentated into 1 vector)
+```
 
 # Examples 
 
-For a large Verilog module in myFile.v with approximately 128 flops, 38 input pins and 41 output pins:
+For a relatively large Verilog module in myFile.v with approximately 128 flops, 38 input pins and 41 output pins:
+```
+python3 poser.py --flops 128 --size l --verilog myFile.v --inputs 38 --outputs 41
+```
 
->python3 poser.py -f 128 -s l -v myFile.v -i 38 -o 41
+# Contact
+
+neil.johnson@agilesoc.com
