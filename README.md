@@ -19,7 +19,7 @@ optional arguments:
                                                            path to the verilog file with an existing module
                                                            definition.
   -i INPUT_PINS, --inputs INPUT_PINS
-                                                           Total umber of input pins.
+                                                           Total number of input pins.
   -o OUTPUT_PINS, --outputs OUTPUT_PINS
                                                            Total number of output pins.
 ```
