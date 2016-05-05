@@ -4,7 +4,7 @@ Generate placeholder Verilog modules for early stage physical design layout, etc
 
 # Usage
 
-'''usage: poser.py [-h] -f FLOPS -s {xs,s,m,l,xl,xxl,xxxl} -v file -i input width
+```usage: poser.py [-h] -f FLOPS -s {xs,s,m,l,xl,xxl,xxxl} -v file -i input width
                 -o output width
 
 Create a verilog module based on flop and size estimates.
@@ -23,7 +23,7 @@ optional arguments:
                         concatentated into 1 vector)
   -o output width, --outputs output width
                         Minimum effective output width (i.e. if all outputs
-                        were concatentated into 1 vector)'''
+                        were concatentated into 1 vector)```
 
 # Examples 
 
