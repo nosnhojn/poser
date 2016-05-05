@@ -1,6 +1,6 @@
 # Poser
 
-Generate placeholder Verilog modules for early stage physical design layout, etc. before real RTL is complete. Poser parses a Verilog file, extracting pertinent module IO and parameters information, then generates a poser module with the same IO footprint but with randomly generated internal logic. Poser modules of different sizes can be created by estimating flop counts and relative size based on IO count.
+Generate placeholder Verilog modules for early stage physical design layout, etc. before real RTL is complete. Poser parses a Verilog file, extracting pertinent module IO and parameter information, then generates a poser module with the same IO footprint but with randomly generated internal logic. Poser modules of different sizes can be created through estimated flop counts and relative size based on IO count.
 
 # Usage
 
