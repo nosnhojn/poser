@@ -44,8 +44,9 @@ class ModuleParser:
     self.cellTypes = [ x[:] for x in [['0']*self.gridWidth]*self.gridDepth ]
 
   def likelihood(self):
-    n = random.randint(0,99)
-    if n <= 2:
+    # n = random.randint(0,999)
+    n = random.randint(0,999)
+    if n < 1:
       return True
     else:
       return False
@@ -54,7 +55,10 @@ class ModuleParser:
     _cnt = 0
     wIdx = 0
     dIdx = 0
-    while _cnt < n:
+    _n = n
+    if _n > self.gridWidth * self.gridDepth:
+      _n = self.gridWidth * self.gridDepth
+    while _cnt < _n:
       if self.cellTypes[dIdx][wIdx] == '0' and self.likelihood():
         self.cellTypes[dIdx][wIdx] = '1'
         _cnt += 1
@@ -321,9 +325,11 @@ class ModuleParser:
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Create a verilog module based on flop and size estimates.')
-  parser.add_argument('-f', '--flops', required=True, help='estimated number of flops.')
+  parser.add_argument('-f', '--flops', type=int, required=True, help='estimated number of flops.')
   parser.add_argument('-s', '--size', choices=['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl' ], required=True, help='relative size estimate.')
   parser.add_argument('-v', '--verilog', metavar='file', required=True, help='path to the verilog file with an existing moduel definition.')
+  parser.add_argument('-i', '--inputs', type=int, metavar='input width', required=True, help='Minimum effective input width (i.e. if all inputs were concatentated into 1 vector)')
+  parser.add_argument('-o', '--outputs', type=int, metavar='output width', required=True, help='Minimum effective output width (i.e. if all outputs were concatentated into 1 vector)')
 
   args = parser.parse_args()
 
@@ -332,6 +338,33 @@ if __name__ == '__main__':
 
   mp = ModuleParser()
   mp.parse(_file)
+
+  if args.inputs > args.outputs:
+    _xsWidth = args.inputs
+  else:
+    _xsWidth = args.outputs
+
+  depthFactor = 5
+
+  if args.size == 'xs':
+    mp.setGridSize(_xsWidth, depthFactor)
+  elif args.size == 's':
+    mp.setGridSize(2 * _xsWidth, 3*depthFactor)
+  elif args.size == 'm':
+    mp.setGridSize(4 * _xsWidth, 6*depthFactor)
+  elif args.size == 'l':
+    mp.setGridSize(6 * _xsWidth, 9*depthFactor)
+  elif args.size == 'xl':
+    mp.setGridSize(10 * _xsWidth, 12*depthFactor)
+  elif args.size == 'xxl':
+    mp.setGridSize(20 * _xsWidth, 15*depthFactor)
+  elif args.size == 'xxxl':
+    mp.setGridSize(40 * _xsWidth, 18*depthFactor)
+
+  while args.flops > (mp.gridWidth * mp.gridDepth)/2:
+    mp.setGridSize(mp.gridWidth*2, mp.gridDepth)
+
+  mp.setNumFlops(args.flops)
 
   print(mp.moduleAsString())
 
